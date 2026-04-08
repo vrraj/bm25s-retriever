@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "bm25s-retriever"
+version = "1.0.0"
+description = "A standalone BM25S-based document retrieval service"
+authors = [{name = "BM25S Retriever Team", email = "team@bm25s-retriever.com"}]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+    "bm25s[full]==0.3.2.post1",
+    "PyStemmer>=2.2.0",
+    "PyYAML==6.0.3",
+    "pydantic==2.11.0",
+    "httpx>=0.28.1,<0.29.0",
+]
+
+[project.optional-dependencies]
+server = [
+    "fastapi==0.135.2",
+    "uvicorn==0.34.0",
+    "jinja2>=3.1.0,<4.0.0",
+    "python-multipart>=0.0.6",
+]
+dev = [
+    "pytest==8.3.3",
+    "pytest-asyncio==1.3.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "server",
+]
+
+[project.urls]
+Homepage = "https://github.com/bm25s-retriever/bm25s-retriever"
+Repository = "https://github.com/bm25s-retriever/bm25s-retriever"
+Documentation = "https://bm25s-retriever.readthedocs.io"
+
+[project.scripts]
+bm25s-server = "bm25s_retriever.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["bm25s_retriever*"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.ruff]
+line-length = 88
+target-version = "py38"
