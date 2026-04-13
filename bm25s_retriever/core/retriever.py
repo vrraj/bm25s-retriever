@@ -5,6 +5,8 @@ BM25S document retriever implementation.
 import bm25s
 import Stemmer
 import math
+import yaml
+import os
 from typing import List, Dict, Any, Optional, Union
 from dataclasses import dataclass
 
@@ -19,22 +21,72 @@ class Document:
     content: str
     keywords: List[str] = None
     metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.keywords is None:
+            self.keywords = []
+        if self.metadata is None:
+            self.metadata = {}
+    
+    def copy(self) -> Dict[str, Any]:
+        """Return a copy of document data as dict."""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "content": self.content,
+            "keywords": self.keywords,
+            "metadata": self.metadata
+        }
 
 
 class BM25SRetriever:
     """BM25S-based document retrieval system with softmax scoring and cutoff filtering."""
     
-    def __init__(self, settings: BM25SSettings = None):
+    def __init__(self, settings: BM25SSettings = None, document_file: str = "documents.yaml"):
         self.settings = settings or BM25SSettings()
         self.stemmer = Stemmer.Stemmer("english")
         self.documents: List[Document] = []
         self.retriever = None
+        self.document_file = document_file
         self._load_and_index_documents()
+    
+    def _load_documents_from_yaml(self, file_path: str) -> List[Document]:
+        """Load documents from YAML file."""
+        if not os.path.exists(file_path):
+            return []
+        
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                data = yaml.safe_load(f)
+            
+            documents = []
+            for doc_data in data.get('documents', []):
+                doc = Document(
+                    id=doc_data['id'],
+                    title=doc_data['title'],
+                    content=doc_data['content'],
+                    keywords=doc_data.get('keywords', []),
+                    metadata=doc_data.get('metadata', {})
+                )
+                documents.append(doc)
+            
+            return documents
+        except Exception as e:
+            print(f"Error loading documents from {file_path}: {e}")
+            return []
     
     def _load_and_index_documents(self, documents: List[Document] = None):
         """Load documents and build BM25S index."""
         if documents:
             self.documents = documents
+        else:
+            # Load from YAML file
+            self.documents = self._load_documents_from_yaml(self.document_file)
+        
+        # If no documents, don't build index yet
+        if not self.documents:
+            self.retriever = None
+            return
         
         corpus = []
         formatted_docs = []
@@ -103,76 +155,127 @@ class BM25SRetriever:
         Returns:
             Dictionary with retrieval results and metadata
         """
-        if not self.retriever:
+        try:
+            if not self.retriever:
+                return {
+                    "success": False,
+                    "message": "No documents indexed",
+                    "documents": [],
+                    "scores": [],
+                    "softmax_scores": []
+                }
+            
+            # Override settings with kwargs
+            temperature = kwargs.get("temperature", self.settings.temperature)
+            ignore_zero = kwargs.get("ignore_zero", self.settings.ignore_zero)
+            llm_tools_cutoff = kwargs.get("llm_tools_cutoff", self.settings.llm_tools_cutoff)
+            
+            print(f"Debug: Starting retrieval with query: '{query}'")
+            
+            # Tokenize query
+            query_tokens = bm25s.tokenize([query], stopwords="en", stemmer=self.stemmer)[0]
+            print(f"Debug: Query tokens: {query_tokens}")
+            
+            # Retrieve scores
+            scores, indices = self.retriever.retrieve(query_tokens, k=len(self.documents))
+            print(f"Debug: Retrieved scores type: {type(scores)}, indices type: {type(indices)}")
+            print(f"Debug: Scores shape: {getattr(scores, 'shape', 'N/A')}")
+            print(f"Debug: Indices shape: {getattr(indices, 'shape', 'N/A')}")
+            
+            # Handle nested arrays from BM25S
+            if hasattr(scores, 'shape') and len(scores.shape) > 1:
+                scores = scores[0]  # Take first row if 2D
+            if hasattr(indices, 'shape') and len(indices.shape) > 1:
+                indices = indices[0]  # Take first row if 2D
+            
+            # Convert indices to integers (BM25S returns floats)
+            indices = indices.astype(int)
+                
+            print(f"Debug: After unpacking - scores: {scores}, indices: {indices}")
+            print(f"Debug: Scores type: {type(scores)}, indices type: {type(indices)}")
+            
+            # Prepare results
+            results = []
+            all_scores = []
+            retrieved_docs = []
+            
+            print(f"Debug: Processing {len(scores)} results...")
+            for i, (score, idx) in enumerate(zip(scores, indices)):
+                print(f"Debug: Processing result {i}: score={score} (type: {type(score)}), idx={idx}")
+                if idx < len(self.documents):
+                    doc = self.documents[idx].copy()
+                    score_float = float(score) if hasattr(score, 'item') else float(score)
+                    print(f"Debug: Converted score to float: {score_float}")
+                    doc["bm25_score"] = score_float
+                    retrieved_docs.append(doc)
+                    all_scores.append(score_float)
+                else:
+                    print(f"Debug: Index {idx} out of range (documents: {len(self.documents)})")
+            
+            print(f"Debug: Processed {len(all_scores)} scores")
+            
+            # Apply ignore_zero filter
+            if ignore_zero:
+                print(f"Debug: Applying ignore_zero filter...")
+                filtered_docs = []
+                filtered_scores = []
+                for doc, score in zip(retrieved_docs, all_scores):
+                    print(f"Debug: Checking score: {score} (type: {type(score)})")
+                    score_float = float(score) if hasattr(score, 'item') else float(score)
+                    if score_float > 0:
+                        filtered_docs.append(doc)
+                        filtered_scores.append(score_float)
+                retrieved_docs = filtered_docs
+                all_scores = filtered_scores
+                print(f"Debug: After filtering: {len(all_scores)} documents")
+            
+            # Calculate softmax scores
+            print(f"Debug: Calculating softmax with temperature: {temperature}")
+            softmax_scores = self._calculate_softmax(all_scores, temperature)
+            print(f"Debug: Softmax scores: {softmax_scores}")
+            
+            # Apply cutoff filtering
+            cutoff_percentage = llm_tools_cutoff / 100.0
+            print(f"Debug: Applying cutoff: {cutoff_percentage}")
+            filtered_results = []
+            
+            for doc, score, softmax_score in zip(retrieved_docs, all_scores, softmax_scores):
+                print(f"Debug: Checking softmax_score: {softmax_score} >= {cutoff_percentage}")
+                doc["softmax_score"] = softmax_score
+                if softmax_score >= cutoff_percentage:
+                    filtered_results.append(doc)
+            
+            print(f"Debug: Final results: {len(filtered_results)} documents")
+            
+            # Sort by softmax score (descending)
+            filtered_results.sort(key=lambda x: x["softmax_score"], reverse=True)
+            
+            return {
+                "success": True,
+                "message": f"Retrieved {len(filtered_results)} documents",
+                "documents": filtered_results,
+                "total_retrieved": len(retrieved_docs),
+                "cutoff_percentage": cutoff_percentage,
+                "settings": {
+                    "temperature": temperature,
+                    "ignore_zero": ignore_zero,
+                    "llm_tools_cutoff": llm_tools_cutoff
+                }
+            }
+            
+        except Exception as e:
             return {
                 "success": False,
-                "message": "No documents indexed",
+                "message": f"Error during retrieval: {str(e)}",
                 "documents": [],
-                "scores": [],
-                "softmax_scores": []
+                "total_retrieved": 0,
+                "cutoff_percentage": 0.0,
+                "settings": {
+                    "temperature": temperature,
+                    "ignore_zero": ignore_zero,
+                    "llm_tools_cutoff": llm_tools_cutoff
+                }
             }
-        
-        # Override settings with kwargs
-        temperature = kwargs.get("temperature", self.settings.temperature)
-        ignore_zero = kwargs.get("ignore_zero", self.settings.ignore_zero)
-        llm_tools_cutoff = kwargs.get("llm_tools_cutoff", self.settings.llm_tools_cutoff)
-        
-        # Tokenize query
-        query_tokens = bm25s.tokenize([query], stopwords="en", stemmer=self.stemmer)[0]
-        
-        # Retrieve scores
-        scores, indices = self.retriever.retrieve(query_tokens, k=len(self.documents))
-        
-        # Prepare results
-        results = []
-        all_scores = []
-        retrieved_docs = []
-        
-        for i, (score, idx) in enumerate(zip(scores, indices)):
-            if idx < len(self.documents):
-                doc = self.documents[idx].copy()
-                doc["bm25_score"] = float(score)
-                retrieved_docs.append(doc)
-                all_scores.append(float(score))
-        
-        # Apply ignore_zero filter
-        if ignore_zero:
-            filtered_docs = []
-            filtered_scores = []
-            for doc, score in zip(retrieved_docs, all_scores):
-                if score > 0:
-                    filtered_docs.append(doc)
-                    filtered_scores.append(score)
-            retrieved_docs = filtered_docs
-            all_scores = filtered_scores
-        
-        # Calculate softmax scores
-        softmax_scores = self._calculate_softmax(all_scores, temperature)
-        
-        # Apply cutoff filtering
-        cutoff_percentage = llm_tools_cutoff / 100.0
-        filtered_results = []
-        
-        for doc, score, softmax_score in zip(retrieved_docs, all_scores, softmax_scores):
-            doc["softmax_score"] = softmax_score
-            if softmax_score >= cutoff_percentage:
-                filtered_results.append(doc)
-        
-        # Sort by softmax score (descending)
-        filtered_results.sort(key=lambda x: x["softmax_score"], reverse=True)
-        
-        return {
-            "success": True,
-            "message": f"Retrieved {len(filtered_results)} documents",
-            "documents": filtered_results,
-            "total_retrieved": len(retrieved_docs),
-            "cutoff_percentage": cutoff_percentage,
-            "settings": {
-                "temperature": temperature,
-                "ignore_zero": ignore_zero,
-                "llm_tools_cutoff": llm_tools_cutoff
-            }
-        }
     
     def add_documents(self, documents: List[Document]):
         """Add new documents and rebuild index."""
