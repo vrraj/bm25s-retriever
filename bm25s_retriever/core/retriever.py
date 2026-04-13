@@ -117,13 +117,23 @@ class BM25SRetriever:
             formatted_docs.append(doc_data)
             corpus.append(full_desc)
         
-        self.documents = formatted_docs
+        # Keep Document objects separate from formatted docs for indexing
+        self.formatted_docs = formatted_docs
         
         # Build BM25S index
         if corpus:
+            print(f"Debug: Building index with {len(corpus)} documents")
+            for i, (doc, corpus_text) in enumerate(zip(self.documents, corpus)):
+                print(f"Debug: Index {i}: {doc.id} -> {corpus_text[:50]}...")
+            
             corpus_tokens = bm25s.tokenize(corpus, stopwords="en", stemmer=self.stemmer)
             self.retriever = bm25s.BM25(method="lucene")
             self.retriever.index(corpus_tokens)
+            
+            # Debug: Check indexing
+            print(f"Debug: Indexed {len(corpus)} documents")
+            print(f"Debug: Document IDs: {[doc.id for doc in self.documents]}")
+            print(f"Debug: Corpus tokens length: {len(corpus_tokens)}")
     
     def _calculate_softmax(self, scores: List[float], temperature: float = 1.0) -> List[float]:
         """Calculate softmax probabilities with temperature scaling."""
@@ -173,26 +183,42 @@ class BM25SRetriever:
             print(f"Debug: Starting retrieval with query: '{query}'")
             
             # Tokenize query
-            query_tokens = bm25s.tokenize([query], stopwords="en", stemmer=self.stemmer)[0]
+            query_tokens = bm25s.tokenize(query, stopwords="en", stemmer=self.stemmer)
             print(f"Debug: Query tokens: {query_tokens}")
             
-            # Retrieve scores
-            scores, indices = self.retriever.retrieve(query_tokens, k=len(self.documents))
-            print(f"Debug: Retrieved scores type: {type(scores)}, indices type: {type(indices)}")
-            print(f"Debug: Scores shape: {getattr(scores, 'shape', 'N/A')}")
-            print(f"Debug: Indices shape: {getattr(indices, 'shape', 'N/A')}")
+            # Handle empty tokens
+            if not query_tokens:
+                return {
+                    "success": False,
+                    "message": "Query tokens are empty after processing",
+                    "documents": [],
+                    "total_retrieved": 0,
+                    "cutoff_percentage": 0.0,
+                    "settings": {
+                        "temperature": temperature,
+                        "ignore_zero": ignore_zero,
+                        "llm_tools_cutoff": llm_tools_cutoff
+                    }
+                }
             
-            # Handle nested arrays from BM25S
-            if hasattr(scores, 'shape') and len(scores.shape) > 1:
-                scores = scores[0]  # Take first row if 2D
-            if hasattr(indices, 'shape') and len(indices.shape) > 1:
-                indices = indices[0]  # Take first row if 2D
+            # Retrieve scores using BM25S retrieve method
+            results = self.retriever.retrieve(query_tokens, k=len(self.documents))
+            print(f"Debug: BM25S retrieve results: {results}")
+            print(f"Debug: Results type: {type(results)}")
             
-            # Convert indices to integers (BM25S returns floats)
-            indices = indices.astype(int)
-                
-            print(f"Debug: After unpacking - scores: {scores}, indices: {indices}")
-            print(f"Debug: Scores type: {type(scores)}, indices type: {type(indices)}")
+            # Extract documents and scores from BM25S Results object
+            if hasattr(results, 'documents') and hasattr(results, 'scores'):
+                # Handle BM25S Results object
+                indices = results.documents[0]  # Take first row
+                scores = results.scores[0]     # Take first row
+                print(f"Debug: Extracted indices: {indices}")
+                print(f"Debug: Extracted scores: {scores}")
+            else:
+                # Fallback
+                indices = list(range(len(self.documents)))
+                scores = [0.0] * len(self.documents)
+            
+            print(f"Debug: Document IDs by index: {[self.documents[i].id for i in indices[:5]]}")
             
             # Prepare results
             results = []
@@ -203,11 +229,12 @@ class BM25SRetriever:
             for i, (score, idx) in enumerate(zip(scores, indices)):
                 print(f"Debug: Processing result {i}: score={score} (type: {type(score)}), idx={idx}")
                 if idx < len(self.documents):
-                    doc = self.documents[idx].copy()
+                    doc = self.documents[idx]
+                    doc_dict = doc.copy()
                     score_float = float(score) if hasattr(score, 'item') else float(score)
                     print(f"Debug: Converted score to float: {score_float}")
-                    doc["bm25_score"] = score_float
-                    retrieved_docs.append(doc)
+                    doc_dict["bm25_score"] = score_float
+                    retrieved_docs.append(doc_dict)
                     all_scores.append(score_float)
                 else:
                     print(f"Debug: Index {idx} out of range (documents: {len(self.documents)})")

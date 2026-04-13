@@ -192,6 +192,94 @@ def create_app(config: Config = None) -> FastAPI:
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
     
+    @app.get("/documents")
+    async def get_documents():
+        """Get all documents."""
+        try:
+            retriever = get_retriever()
+            
+            documents = []
+            for doc in retriever.documents:
+                documents.append({
+                    "id": doc.id,
+                    "title": doc.title,
+                    "content": doc.content,
+                    "keywords": doc.keywords,
+                    "metadata": doc.metadata
+                })
+            
+            return {
+                "success": True,
+                "documents": documents,
+                "count": len(documents)
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/documents")
+    async def add_document(document: DocumentModel):
+        """Add a new document."""
+        try:
+            retriever = get_retriever()
+            
+            new_doc = Document(
+                id=document.id,
+                title=document.title,
+                content=document.content,
+                keywords=document.keywords,
+                metadata=document.metadata
+            )
+            
+            retriever.add_documents([new_doc])
+            
+            return {
+                "success": True,
+                "message": f"Document '{document.id}' added successfully"
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.delete("/documents/{document_id}")
+    async def delete_document(document_id: str):
+        """Delete a document."""
+        try:
+            retriever = get_retriever()
+            
+            # Remove document by ID
+            original_count = len(retriever.documents)
+            retriever.documents = [doc for doc in retriever.documents if doc.id != document_id]
+            
+            if len(retriever.documents) == original_count:
+                raise HTTPException(status_code=404, detail=f"Document '{document_id}' not found")
+            
+            # Rebuild index
+            retriever._load_and_index_documents()
+            
+            return {
+                "success": True,
+                "message": f"Document '{document_id}' deleted successfully"
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/documents/reload")
+    async def reload_documents():
+        """Reload documents from YAML file."""
+        try:
+            retriever = get_retriever()
+            retriever._load_and_index_documents()
+            
+            return {
+                "success": True,
+                "message": f"Documents reloaded. {len(retriever.documents)} documents loaded."
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
     @app.get("/status")
     async def get_status():
         """Get service status."""
