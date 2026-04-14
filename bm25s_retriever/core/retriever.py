@@ -307,7 +307,37 @@ class BM25SRetriever:
     def add_documents(self, documents: List[Document]):
         """Add new documents and rebuild index."""
         self.documents.extend(documents)
-        self._load_and_index_documents()
+        # Rebuild index with current documents (don't reload from YAML)
+        self._build_index_from_documents()
+    
+    def _build_index_from_documents(self):
+        """Build BM25S index from current documents in memory."""
+        corpus = []
+        
+        for doc in self.documents:
+            # Build description for BM25S indexing
+            desc_parts = []
+            if doc.title:
+                desc_parts.append(doc.title)
+            
+            if doc.content:
+                desc_parts.append(doc.content)
+            
+            if doc.keywords:
+                desc_parts.extend([f"keyword: {kw}" for kw in doc.keywords])
+            
+            full_desc = " ".join(desc_parts)
+            corpus.append(full_desc)
+        
+        # Build BM25S index
+        if corpus:
+            print(f"Debug: Building index with {len(corpus)} documents")
+            corpus_tokens = bm25s.tokenize(corpus, stopwords="en", stemmer=self.stemmer)
+            self.retriever = bm25s.BM25(method="lucene")
+            self.retriever.index(corpus_tokens)
+            print(f"Debug: Index rebuilt successfully")
+        else:
+            self.retriever = None
     
     def rebuild_index(self, documents: List[Document] = None):
         """Rebuild the BM25S index."""

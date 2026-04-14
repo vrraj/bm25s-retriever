@@ -167,13 +167,58 @@ results = client.retrieve(
 # Get documents
 documents = client.get_documents()
 
-# Add document
-client.add_document({
+# Add document programmatically
+result = client.add_document({
     "id": "new_doc",
     "title": "New Document",
-    "content": "Content here",
+    "content": "Content here...",
     "keywords": ["keyword"]
 })
+```
+
+### JavaScript/Frontend Usage
+```javascript
+// Open add document modal
+document.getElementById('add-document-modal').style.display = 'block';
+
+// Add document via API
+async function addDocument(docData) {
+  const response = await fetch('/documents', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(docData)
+  });
+  
+  return await response.json();
+}
+
+// Usage
+const result = await addDocument({
+  id: "my_doc",
+  title: "My Document",
+  content: "Document content here...",
+  keywords: ["keyword1", "keyword2"]
+});
+```
+
+### REST API Usage
+```bash
+# Add document via curl
+curl -X POST http://localhost:9200/documents \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "my_doc",
+    "title": "My Document",
+    "content": "Document content here...",
+    "keywords": ["keyword1", "keyword2"]
+  }'
+
+# Search documents
+curl -X POST http://localhost:9200/retrieve \
+  -H "Content-Type: application/json" \
+  -d '{"query": "cryptocurrency", "temperature": 0.7}'
 ```
 
 ## BM25S Algorithm

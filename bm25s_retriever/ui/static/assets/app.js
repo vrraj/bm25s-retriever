@@ -156,13 +156,7 @@ function initDocumentsTab() {
     reloadBtn?.addEventListener('click', reloadIndex);
     saveBtn?.addEventListener('click', saveDocument);
     
-    // Close modal on outside click
-    window.addEventListener('click', (e) => {
-        const modal = document.getElementById('add-document-modal');
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
+    // Modal can only be closed by X button (no outside-click closing)
 }
 
 function closeModal() {
