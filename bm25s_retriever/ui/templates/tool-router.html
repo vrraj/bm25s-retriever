@@ -19,35 +19,37 @@
         <section class="card">
           <div class="tabs">
             <button class="tab-button active" data-tab-target="search-testing">Search Testing</button>
-            <button class="tab-button" data-tab-target="document-management">Documents</button>
+            <button class="tab-button" data-tab-target="document-management">View and Add Documents</button>
             <button class="tab-button" data-tab-target="settings">Settings</button>
-            <button class="tab-button" data-tab-target="status">Status</button>
+            <button class="tab-button" data-tab-target="status">Service Status</button>
           </div>
 
           <!-- Search Testing Tab -->
           <div id="search-testing-panel" data-tab-panel="search-testing">
-            <div class="grid two" style="margin-top: 16px;">
+            <div>
               <section class="card">
-                <h2>Search Query</h2>
-                <div style="margin-bottom: 12px;">
-                  <label for="search-query">Query:</label>
-                  <textarea id="search-query" rows="3" placeholder="Enter your search query..."></textarea>
+                <div style="margin-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label for="search-query">Query:</label>
+                    <a href="/docs/search-help.html" target="_blank" style="text-decoration: none; color: #666;">Documentation &rarr; Search and Search API</a>
+                  </div>
+                  <textarea id="search-query" rows="2" placeholder="Enter your search query..."></textarea>
                 </div>
-                <div class="grid two" style="margin-bottom: 12px;">
+                <div class="grid three" style="margin-bottom: 8px;">
                   <div>
                     <label for="search-temperature">Temperature:</label>
                     <input id="search-temperature" type="number" min="0.1" max="10" step="0.1" value="0.7" />
                   </div>
                   <div>
-                    <label for="search-cutoff">Cutoff %:</label>
+                    <label for="search-cutoff">Softmax Cutoff %:</label>
                     <input id="search-cutoff" type="number" min="0" max="100" step="0.1" value="8.0" />
                   </div>
-                </div>
-                <div style="margin-bottom: 12px;">
-                  <label style="display: inline-flex; align-items: center; gap: 8px;">
-                    <input id="search-ignore-zero" type="checkbox" checked />
-                    Filter zero-relevance documents
-                  </label>
+                  <div style="display: flex; align-items: center;">
+                    <label style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 0;">
+                      <input id="search-ignore-zero" type="checkbox" checked />
+                      <span style="font-size: 0.9em;">Filter zero-relevance</span>
+                    </label>
+                  </div>
                 </div>
                 <div class="inline-actions">
                   <button id="search-btn" type="button">Search Documents</button>
@@ -55,9 +57,9 @@
                 </div>
               </section>
 
-              <section class="card">
+              <section class="card" style="margin-top: 8px;">
                 <h2>Search Results</h2>
-                <div id="search-results" style="max-height: 400px; overflow-y: auto;">
+                <div id="search-results" style="max-height: 600px; overflow-y: auto;">
                   <div class="muted">Enter a query to search documents.</div>
                 </div>
               </section>
@@ -67,16 +69,55 @@
           <!-- Document Management Tab -->
           <div id="document-management-panel" data-tab-panel="document-management" class="panel-hidden">
             <div class="inline-actions" style="justify-content: space-between; align-items: center; margin-bottom: 14px;">
-              <div class="muted">Document Management</div>
+              <div class="muted">Manage your document collection. [<a href="/docs/document-help.html" target="_blank" style="text-decoration: none; color: #666;">Help</a>]</div>
               <div>
                 <button id="add-document-btn" type="button">Add Document</button>
-                <button id="reload-index-btn" type="button" class="secondary">Reload Index</button>
+                <button id="reload-index-btn" type="button" class="secondary" title="This deletes all documents manually passed via UI and reloads from YAML file">Reload Index</button>
               </div>
             </div>
             <div id="documents-result" style="margin-bottom: 14px;"></div>
             <div id="documents-table">
-              <div class="muted" style="margin-bottom: 12px;">Manage your document collection.</div>
               <div id="documents-list"></div>
+            </div>
+            
+            <!-- File Management Section -->
+            <div style="margin-top: 24px;">
+              <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; white-space: nowrap;">
+                <div style="display: flex; align-items: center; gap: 8px; height: 32px;">
+                  <label for="current-file" style="margin: 0; display: flex; align-items: center;">Current Source File:</label>
+                  <span id="current-file" class="muted" style="font-weight: 500; display: flex; align-items: center;">Loading...</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; height: 32px;">
+                  <label for="file-selector" style="margin: 0; display: flex; align-items: center;">Switch to:</label>
+                  <select id="file-selector" style="min-width: 200px; height: 32px; margin-bottom: 0px;">
+                    <option value="">Loading files...</option>
+                  </select>
+                  <button id="switch-file-btn" type="button" disabled style="height: 32px;">Switch File</button>
+                </div>
+              </div>
+              <div id="file-switch-result" class="muted"></div>
+            </div>
+            
+            <!-- Documents Table -->
+            <div style="margin-top: 24px;">
+              <h3>Indexed Documents</h3>
+              <div id="documents-table-container" style="overflow-x: auto;">
+                <table id="documents-table-element" style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+                  <thead>
+                    <tr style="background: #f5f5f5;">
+                      <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Document ID</th>
+                      <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Title</th>
+                      <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Content</th>
+                      <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Keywords</th>
+                      <th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="documents-tbody">
+                    <!-- Documents will be populated here -->
+                  </tbody>
+                </table>
+                <div id="no-documents-message" class="muted" style="margin-top: 12px;">No documents found in index.</div>
+              </div>
             </div>
           </div>
 
@@ -102,7 +143,7 @@
                     <small class="muted">Filters out documents with zero BM25 scores</small>
                   </div>
                   <div>
-                    <label for="settings-cutoff">Default Cutoff %</label>
+                    <label for="settings-cutoff">Default Softmax Cutoff %</label>
                     <input id="settings-cutoff" type="number" min="0" max="100" step="0.1" value="8.0" />
                     <small class="muted">Minimum softmax percentage to include</small>
                   </div>
@@ -118,7 +159,7 @@
                 <div class="muted">
                   <p><strong>Temperature:</strong> Controls softmax uniformity (0.1-10.0)</p>
                   <p><strong>Ignore Zero:</strong> Filters zero-relevance documents</p>
-                  <p><strong>Cutoff %:</strong> Minimum softmax percentage (0-100)</p>
+                  <p><strong>Softmax Cutoff %:</strong> Minimum softmax percentage (0-100)</p>
                   <p><strong>Usage:</strong> Settings apply to all search requests</p>
                 </div>
               </section>
@@ -132,7 +173,7 @@
                 <h2>Service Status</h2>
                 <div id="service-status" class="muted">Loading status...</div>
                 <div class="inline-actions" style="margin-top: 16px;">
-                  <button id="status-refresh" type="button">Refresh Status</button>
+                  <button id="status-refresh" type="button" title="This restarts the BM25S retriever service">Refresh Status</button>
                 </div>
               </section>
 

@@ -21,24 +21,55 @@ function initTabs() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabPanels = document.querySelectorAll('[data-tab-panel]');
     
+    // Function to switch to a specific tab
+    function switchToTab(targetTab) {
+        // Update button states
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        const activeButton = document.querySelector(`[data-tab-target="${targetTab}"]`);
+        if (activeButton) {
+            activeButton.classList.add('active');
+        }
+        
+        // Update panel visibility
+        tabPanels.forEach(panel => {
+            if (panel.dataset.tabPanel === targetTab) {
+                panel.classList.remove('panel-hidden');
+            } else {
+                panel.classList.add('panel-hidden');
+            }
+        });
+        
+        // Update URL hash
+        window.location.hash = targetTab;
+    }
+    
+    // Add click listeners to tab buttons
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetTab = button.dataset.tabTarget;
-            
-            // Update button states
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            // Update panel visibility
-            tabPanels.forEach(panel => {
-                if (panel.dataset.tabPanel === targetTab) {
-                    panel.classList.remove('panel-hidden');
-                } else {
-                    panel.classList.add('panel-hidden');
-                }
-            });
+            switchToTab(targetTab);
         });
     });
+    
+    // Handle URL hash changes
+    function handleHashChange() {
+        const hash = window.location.hash.slice(1); // Remove #
+        if (hash && document.querySelector(`[data-tab-panel="${hash}"]`)) {
+            switchToTab(hash);
+        } else if (!hash) {
+            // Default to first tab if no hash
+            const firstTab = document.querySelector('.tab-button');
+            if (firstTab) {
+                switchToTab(firstTab.dataset.tabTarget);
+            }
+        }
+    }
+    
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Handle initial hash on page load
+    handleHashChange();
 }
 
 // Search tab functionality
@@ -72,68 +103,106 @@ async function performSearch() {
     try {
         showMessage('search-results', 'Searching...', 'info');
         
-        const response = await fetch('/retrieve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                query,
-                temperature,
-                llm_tools_cutoff: cutoff,
-                ignore_zero: ignoreZero
+        // Make two API calls - one with temp 1.0 and one with user temp
+        const [response1, response2] = await Promise.all([
+            fetch('/retrieve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query,
+                    temperature: 1.0,
+                    llm_tools_cutoff: cutoff,
+                    ignore_zero: ignoreZero
+                })
+            }),
+            fetch('/retrieve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query,
+                    temperature,
+                    llm_tools_cutoff: cutoff,
+                    ignore_zero: ignoreZero
+                })
             })
-        });
+        ]);
         
-        const data = await response.json();
+        const data1 = await response1.json();
+        const data2 = await response2.json();
         
-        if (!response.ok) {
-            throw new Error(data.detail || data.message || 'Search failed');
+        if (!response1.ok) {
+            throw new Error(data1.detail || data1.message || 'Search failed');
+        }
+        if (!response2.ok) {
+            throw new Error(data2.detail || data2.message || 'Search failed');
         }
         
-        displaySearchResults(data);
+        displaySearchResults(data1, data2);
         
     } catch (error) {
         showMessage('search-results', `Error: ${error.message}`, 'error');
     }
 }
 
-function displaySearchResults(data) {
+function displaySearchResults(dataTemp1, dataUserTemp) {
     const resultsDiv = document.getElementById('search-results');
     
-    if (!data.documents || data.documents.length === 0) {
+    if (!dataUserTemp.documents || dataUserTemp.documents.length === 0) {
         showMessage('search-results', 'No documents found matching your query', 'warning');
         return;
     }
     
+    // Get the user temperature from the input field
+    const userTemp = parseFloat(document.getElementById('search-temperature').value);
+    
+    // Create a map of document IDs to their temp 1.0 scores
+    const temp1Scores = {};
+    dataTemp1.documents.forEach(doc => {
+        temp1Scores[doc.id] = doc.softmax_score;
+    });
+    
     let html = `
         <div class="muted" style="margin-bottom: 12px;">
-            Found ${data.documents.length} documents (from ${data.total_retrieved} total)
+            Found ${dataUserTemp.documents.length} documents (from ${dataUserTemp.total_retrieved} total)
         </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; margin-top: 12px;">
+                <thead>
+                    <tr style="background: #f5f5f5;">
+                        <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Document ID</th>
+                        <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Title</th>
+                        <th style="padding: 8px; text-align: left; border: 1px solid #ddd;">Content</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd;">BM25 Score</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Softmax @ Temp 1.0</th>
+                        <th style="padding: 8px; text-align: center; border: 1px solid #ddd;">Softmax @ Temp ${userTemp}</th>
+                    </tr>
+                </thead>
+                <tbody>
     `;
     
-    data.documents.forEach(doc => {
-        const scorePercent = (doc.softmax_score * 100).toFixed(2);
+    dataUserTemp.documents.forEach(doc => {
+        const temp1Score = temp1Scores[doc.id] || 0;
+        const temp1Percent = (temp1Score * 100).toFixed(2);
+        const userTempPercent = (doc.softmax_score * 100).toFixed(2);
         const bm25Score = doc.bm25_score.toFixed(3);
         
         html += `
-            <div class="card" style="margin-bottom: 12px; padding: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
-                    <h4 style="margin: 0;">${escapeHtml(doc.title)}</h4>
-                    <div style="text-align: right;">
-                        <div style="font-size: 0.9em; color: #666;">Relevance: ${scorePercent}%</div>
-                        <div style="font-size: 0.8em; color: #999;">BM25: ${bm25Score}</div>
-                    </div>
-                </div>
-                <div style="margin-bottom: 8px;">
-                    ${escapeHtml(doc.content.substring(0, 200))}${doc.content.length > 200 ? '...' : ''}
-                </div>
-                ${doc.keywords && doc.keywords.length > 0 ? `
-                    <div style="font-size: 0.8em; color: #666;">
-                        Keywords: ${doc.keywords.map(kw => `<span style="background: #f0f0f0; padding: 2px 6px; border-radius: 3px; margin-right: 4px;">${escapeHtml(kw)}</span>`).join('')}
-                    </div>
-                ` : ''}
-            </div>
+            <tr>
+                <td style="padding: 8px; border: 1px solid #ddd; max-width: 120px; word-wrap: break-word;">${escapeHtml(doc.id)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; word-wrap: break-word;">${escapeHtml(doc.title)}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; max-width: 300px; word-wrap: break-word;">${escapeHtml(doc.content.substring(0, 150))}${doc.content.length > 150 ? '...' : ''}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${bm25Score}</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${temp1Percent}%</td>
+                <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${userTempPercent}%</td>
+            </tr>
         `;
     });
+    
+    html += `
+                </tbody>
+            </table>
+        </div>
+    `;
     
     resultsDiv.innerHTML = html;
 }
@@ -148,6 +217,8 @@ function initDocumentsTab() {
     const addBtn = document.getElementById('add-document-btn');
     const reloadBtn = document.getElementById('reload-index-btn');
     const saveBtn = document.getElementById('save-document-btn');
+    const fileSelector = document.getElementById('file-selector');
+    const switchFileBtn = document.getElementById('switch-file-btn');
     
     addBtn?.addEventListener('click', () => {
         document.getElementById('add-document-modal').style.display = 'block';
@@ -155,6 +226,14 @@ function initDocumentsTab() {
     
     reloadBtn?.addEventListener('click', reloadIndex);
     saveBtn?.addEventListener('click', saveDocument);
+    
+    // File selector functionality
+    fileSelector?.addEventListener('change', () => {
+        const selectedFile = fileSelector.value;
+        switchFileBtn.disabled = !selectedFile || selectedFile === getCurrentFile();
+    });
+    
+    switchFileBtn?.addEventListener('click', switchDocumentFile);
     
     // Modal can only be closed by X button (no outside-click closing)
 }
@@ -194,7 +273,10 @@ async function saveDocument() {
                     title,
                     content,
                     keywords,
-                    metadata: {}
+                    metadata: {
+                        source: 'ui',
+                        added_at: new Date().toISOString()
+                    }
                 }],
                 rebuild: false
             })
@@ -217,32 +299,116 @@ async function saveDocument() {
 
 async function loadDocuments() {
     try {
-        const response = await fetch('/status');
+        const response = await fetch('/documents');
         const data = await response.json();
         
         if (response.ok) {
-            displayDocuments(data.document_count || 0);
+            displayDocuments(data.documents || []);
         }
     } catch (error) {
         console.error('Failed to load documents:', error);
     }
 }
 
-function displayDocuments(count) {
+function displayDocuments(documents) {
     const listDiv = document.getElementById('documents-list');
+    const tbody = document.getElementById('documents-tbody');
+    const noDocsMsg = document.getElementById('no-documents-message');
+    const table = document.getElementById('documents-table-element');
+    
+    // Count user-added vs YAML documents
+    const userDocs = documents.filter(doc => doc.metadata && doc.metadata.source === 'ui');
+    const yamlDocs = documents.filter(doc => doc.metadata && doc.metadata.source === 'yaml');
+    
+    // Update summary
     listDiv.innerHTML = `
         <div class="muted">
-            <p>Total indexed documents: ${count}</p>
-            <p>Use the "Add Document" button to add new documents.</p>
+            <p>Total indexed documents: ${documents.length} [YAML File: ${yamlDocs.length}, User Added: ${userDocs.length}]</p>
         </div>
     `;
+    
+    // Update table
+    if (documents.length === 0) {
+        table.style.display = 'none';
+        noDocsMsg.style.display = 'block';
+        tbody.innerHTML = '';
+    } else {
+        table.style.display = 'table';
+        noDocsMsg.style.display = 'none';
+        
+        // Sort documents: user-added first, then YAML
+    const sortedDocuments = [...documents].sort((a, b) => {
+        const aIsUser = a.metadata && a.metadata.source === 'ui';
+        const bIsUser = b.metadata && b.metadata.source === 'ui';
+        if (aIsUser && !bIsUser) return -1;
+        if (!aIsUser && bIsUser) return 1;
+        return 0;
+    });
+
+    tbody.innerHTML = sortedDocuments.map(doc => {
+            const isFromUI = doc.metadata && doc.metadata.source === 'ui';
+            const isFromYaml = doc.metadata && doc.metadata.source === 'yaml';
+            const deleteButton = isFromUI ? 
+                `<button onclick="deleteDocument('${escapeHtml(doc.id)}')" style="background: #ff4444; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer;" title="Delete user-added document">
+                    <span style="font-size: 12px;">×</span>
+                </button>` :
+                '<span style="color: #999; font-size: 12px;" title="This document cannot be deleted via UI">-</span>';
+            
+            let sourceLabel = '';
+            if (isFromYaml) {
+                sourceLabel = ' <small style="color: #666;">(YAML)</small>';
+            } else if (isFromUI) {
+                sourceLabel = ' <small style="color: #007bff;">(UI)</small>';
+            }
+            
+            return `
+                <tr style="${isFromYaml ? 'background: #f9f9f9;' : ''}">
+                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; word-wrap: break-word;">${escapeHtml(doc.id)}${sourceLabel}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 200px; word-wrap: break-word;">${escapeHtml(doc.title)}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 300px; word-wrap: break-word;">${escapeHtml(doc.content.substring(0, 100))}${doc.content.length > 100 ? '...' : ''}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; word-wrap: break-word;">${doc.keywords && doc.keywords.length > 0 ? doc.keywords.map(kw => `<span style="background: #f0f0f0; padding: 2px 4px; border-radius: 2px; margin: 1px; display: inline-block;">${escapeHtml(kw)}</span>`).join('') : '-'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${deleteButton}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+}
+
+async function deleteDocument(documentId) {
+    if (!confirm(`Are you sure you want to delete document "${documentId}"?`)) {
+        return;
+    }
+    
+    try {
+        showMessage('documents-result', 'Deleting document...', 'info');
+        
+        const response = await fetch(`/documents/${encodeURIComponent(documentId)}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.detail || data.message || 'Failed to delete document');
+        }
+        
+        showMessage('documents-result', 'Document deleted successfully', 'success');
+        loadDocuments();
+        
+    } catch (error) {
+        showMessage('documents-result', `Error: ${error.message}`, 'error');
+    }
 }
 
 async function reloadIndex() {
+    if (!confirm('This will delete all documents manually passed via UI and reload from YAML file. Are you sure you want to continue?')) {
+        return;
+    }
+    
     try {
         showMessage('documents-result', 'Reloading index...', 'info');
         
-        const response = await fetch('/reload', { method: 'POST' });
+        const response = await fetch('/documents/reload', { method: 'POST' });
         const data = await response.json();
         
         if (!response.ok) {
@@ -281,6 +447,15 @@ function updateSettingsUI(settings) {
     document.getElementById('settings-temperature').value = settings.bm25s.temperature;
     document.getElementById('settings-ignore-zero').checked = settings.bm25s.ignore_zero;
     document.getElementById('settings-cutoff').value = settings.bm25s.llm_tools_cutoff;
+    
+    // Also update search tab defaults
+    updateSearchTabDefaults(settings);
+}
+
+function updateSearchTabDefaults(settings) {
+    document.getElementById('search-temperature').value = settings.bm25s.temperature;
+    document.getElementById('search-ignore-zero').checked = settings.bm25s.ignore_zero;
+    document.getElementById('search-cutoff').value = settings.bm25s.llm_tools_cutoff;
 }
 
 async function saveSettings() {
@@ -318,7 +493,31 @@ async function saveSettings() {
 // Status tab functionality
 function initStatusTab() {
     const refreshBtn = document.getElementById('status-refresh');
-    refreshBtn?.addEventListener('click', loadStatus);
+    refreshBtn?.addEventListener('click', reloadService);
+}
+
+async function reloadService() {
+    if (!confirm('This restarts the BM25S retriever service. All in-memory documents will be lost. Are you sure you want to continue?')) {
+        return;
+    }
+    
+    try {
+        document.getElementById('service-status').innerHTML = '<div class="muted">Restarting service...</div>';
+        
+        const response = await fetch('/reload', { method: 'POST' });
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.detail || data.message || 'Failed to restart service');
+        }
+        
+        // Reload status after restart
+        await loadStatus();
+        
+    } catch (error) {
+        document.getElementById('service-status').innerHTML = 
+            `<div class="muted" style="color: red;">Error restarting service: ${error.message}</div>`;
+    }
 }
 
 async function loadStatus() {
@@ -377,10 +576,121 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+async function loadDocumentFiles() {
+    try {
+        const response = await fetch('/document-files');
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Update current file display
+            document.getElementById('current-file').textContent = data.current_file;
+            
+            // Update file selector
+            const selector = document.getElementById('file-selector');
+            selector.innerHTML = '';
+            
+            data.available_files.forEach(file => {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file;
+                if (file === data.current_file) {
+                    option.selected = true;
+                }
+                selector.appendChild(option);
+            });
+            
+            // Enable/disable switch button
+            const switchBtn = document.getElementById('switch-file-btn');
+            switchBtn.disabled = true;
+            
+            return data;
+        }
+    } catch (error) {
+        console.error('Failed to load document files:', error);
+        document.getElementById('current-file').textContent = 'Error loading';
+    }
+}
+
+function getCurrentFile() {
+    return document.getElementById('current-file').textContent.trim();
+}
+
+async function switchDocumentFile() {
+    const selector = document.getElementById('file-selector');
+    const selectedFile = selector.value;
+    
+    if (!selectedFile || selectedFile === getCurrentFile()) {
+        return;
+    }
+    
+    try {
+        // First, check if warning is needed
+        const response = await fetch('/switch-document-file', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: selectedFile,
+                confirmed: false
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            if (data.requires_warning) {
+                // Show confirmation dialog
+                if (confirm(`${data.warning_message}\n\nThis action cannot be undone.\n\nContinue?`)) {
+                    // User confirmed, proceed with switch
+                    await performFileSwitch(selectedFile, true);
+                }
+            } else {
+                // No warning needed, proceed directly
+                await performFileSwitch(selectedFile, true);
+            }
+        } else {
+            throw new Error(data.detail || data.message || 'Failed to switch file');
+        }
+    } catch (error) {
+        showMessage('file-switch-result', `Error: ${error.message}`, 'error');
+    }
+}
+
+async function performFileSwitch(filename, confirmed) {
+    try {
+        showMessage('file-switch-result', 'Switching file...', 'info');
+        
+        const response = await fetch('/switch-document-file', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                filename: filename,
+                confirmed: confirmed
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            showMessage('file-switch-result', data.message, 'success');
+            
+            // Reload document files info
+            await loadDocumentFiles();
+            
+            // Reload documents list
+            await loadDocuments();
+        } else {
+            throw new Error(data.detail || data.message || 'Failed to switch file');
+        }
+    } catch (error) {
+        showMessage('file-switch-result', `Error: ${error.message}`, 'error');
+    }
+}
+
 async function loadInitialData() {
     await Promise.all([
         loadSettings(),
         loadDocuments(),
-        loadStatus()
+        loadStatus(),
+        loadDocumentFiles()
     ]);
 }

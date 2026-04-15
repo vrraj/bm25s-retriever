@@ -135,6 +135,9 @@ dmypy.json
 *.swo
 *~
 
+# Windsurf
+.windsurf/
+
 # OS
 .DS_Store
 .DS_Store?

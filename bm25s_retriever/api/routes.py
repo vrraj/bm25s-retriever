@@ -3,11 +3,14 @@ FastAPI routes for BM25S retriever service.
 """
 
 import time
-from typing import List
+import os
+import json
+from typing import List, Dict, Any
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from pydantic import BaseModel
 
 from ..core.retriever import BM25SRetriever, Document, get_retriever
 from ..core.config import Config, load_config
@@ -24,6 +27,18 @@ from .models import (
 )
 
 
+class SwitchFileRequest(BaseModel):
+    filename: str
+    confirmed: bool = False
+
+
+class FileInfo(BaseModel):
+    available_files: List[str]
+    current_file: str
+    user_added_count: int
+    requires_warning: bool
+
+
 def create_app(config: Config = None) -> FastAPI:
     """Create FastAPI application."""
     app = FastAPI(
@@ -36,6 +51,7 @@ def create_app(config: Config = None) -> FastAPI:
     
     # Setup static files and templates
     app.mount("/static", StaticFiles(directory="bm25s_retriever/ui/static"), name="static")
+    app.mount("/docs", StaticFiles(directory="docs"), name="docs")
     templates = Jinja2Templates(directory="bm25s_retriever/ui/templates")
     
     @app.get("/", response_class=HTMLResponse)
@@ -311,6 +327,80 @@ def create_app(config: Config = None) -> FastAPI:
             return {
                 "success": True,
                 "message": "Retriever reloaded successfully"
+            }
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.get("/document-files", response_model=FileInfo)
+    async def get_document_files():
+        """Get available document files and current file info."""
+        try:
+            retriever = get_retriever()
+            
+            # Scan source_files directory for .yaml and .json files
+            source_dir = "source_files"
+            available_files = []
+            
+            if os.path.exists(source_dir):
+                for file in os.listdir(source_dir):
+                    if file.endswith(('.yaml', '.yml', '.json')):
+                        available_files.append(file)
+            
+            # Count user-added documents
+            user_added_count = sum(1 for doc in retriever.documents 
+                                 if doc.metadata and doc.metadata.get('source') == 'ui')
+            
+            # Extract current filename from full path
+            current_file = os.path.basename(retriever.document_file)
+            
+            # Warning required if there are user-added documents
+            requires_warning = user_added_count > 0
+            
+            return FileInfo(
+                available_files=sorted(available_files),
+                current_file=current_file,
+                user_added_count=user_added_count,
+                requires_warning=requires_warning
+            )
+            
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    
+    @app.post("/switch-document-file")
+    async def switch_document_file(request: SwitchFileRequest):
+        """Switch to a different document file."""
+        try:
+            retriever = get_retriever()
+            
+            # Validate file exists
+            source_dir = "source_files"
+            file_path = os.path.join(source_dir, request.filename)
+            
+            if not os.path.exists(file_path):
+                raise HTTPException(status_code=404, detail=f"File '{request.filename}' not found")
+            
+            # Count user-added documents for warning
+            user_added_count = sum(1 for doc in retriever.documents 
+                                 if doc.metadata and doc.metadata.get('source') == 'ui')
+            
+            # If not confirmed and there are user-added docs, return warning
+            if not request.confirmed and user_added_count > 0:
+                return {
+                    "requires_warning": True,
+                    "warning_message": f"This will delete {user_added_count} user-added documents and rebuild index from {request.filename}",
+                    "user_added_count": user_added_count
+                }
+            
+            # Switch file and rebuild index
+            retriever.document_file = file_path
+            retriever._load_and_index_documents()
+            
+            return {
+                "success": True,
+                "message": f"Switched to {request.filename} and rebuilt index",
+                "document_count": len(retriever.documents),
+                "current_file": request.filename
             }
             
         except Exception as e:

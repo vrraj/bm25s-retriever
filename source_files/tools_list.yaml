@@ -1,0 +1,202 @@
+# tools_list.yaml - Optimized Enterprise CSR Toolset for BM25S Testing
+
+documents:
+  - id: "get_customer_profile"
+    title: "Get Customer Profile"
+    content: "Retrieve customer details, account info, contact details, and status. Use this to identify the user and their account standing."
+    keywords: ["customer", "profile", "account", "details", "user", "info", "lookup"]
+    metadata:
+      source: "yaml"
+      category: "crm"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "get_customer_orders"
+    title: "Get Customer Orders"
+    content: "Fetch customer orders including open, closed, and priority orders. Provides a summary of the user's purchase history."
+    keywords: ["orders", "order", "history", "open", "closed", "priority"]
+    metadata:
+      source: "yaml"
+      category: "orders"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "get_order_details"
+    title: "Get Order Details"
+    content: "Get detailed information for a specific order by order ID, including line items and billing summary."
+    keywords: ["details", "status", "specific", "lookup", "id"]
+    metadata:
+      source: "yaml"
+      category: "orders"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "create_order"
+    title: "Create Order"
+    content: "Create a new order for a customer with product, quantity, and price. Generates a new transaction record."
+    keywords: ["create", "new", "place", "purchase", "order"]
+    metadata:
+      source: "yaml"
+      category: "orders"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "cancel_order"
+    title: "Cancel Order"
+    content: "Cancel an existing customer order before fulfillment. Prevents the warehouse from shipping the items."
+    keywords: ["cancel", "stop", "revoke", "order"]
+    metadata:
+      source: "yaml"
+      category: "orders"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "update_order"
+    title: "Update Order"
+    content: "Modify an existing order including quantity, product, or shipping address before the order is processed."
+    keywords: ["update", "modify", "change", "edit", "order"]
+    metadata:
+      source: "yaml"
+      category: "orders"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "track_order"
+    title: "Track Order"
+    content: "Track shipment status and delivery updates for an order. Connects to external logistics carriers."
+    keywords: ["track", "shipment", "delivery", "status", "shipping", "updates"]
+    metadata:
+      source: "yaml"
+      category: "logistics"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "process_refund"
+    title: "Process Refund"
+    content: "Initiate refund for a returned or canceled order. Credits the money back to the original payment method."
+    keywords: ["refund", "return", "money", "back", "reimbursement"]
+    metadata:
+      source: "yaml"
+      category: "billing"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "process_exchange"
+    title: "Process Exchange"
+    content: "Handle product exchange requests for a customer order. Swaps a current item for a replacement."
+    keywords: ["exchange", "replace", "product", "swap", "item"]
+    metadata:
+      source: "yaml"
+      category: "orders"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "email_customer"
+    title: "Email Customer"
+    content: "Send email to customer regarding orders, updates, or issues. Supports manual messages and automated templates."
+    keywords: ["email", "notify", "send", "message", "communication"]
+    metadata:
+      source: "yaml"
+      category: "communication"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "notify_order_delay"
+    title: "Notify Order Delay"
+    content: "Notify customer about delayed shipment or delivery issues. Automatically updates the communication log."
+    keywords: ["delay", "late", "shipment", "notify", "order"]
+    metadata:
+      source: "yaml"
+      category: "communication"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "apply_discount"
+    title: "Apply Discount"
+    content: "Apply discount or promo code to a customer order. Validates coupon codes against active marketing campaigns."
+    keywords: ["discount", "promo", "coupon", "apply", "offer"]
+    metadata:
+      source: "yaml"
+      category: "billing"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "escalate_ticket"
+    title: "Escalate Ticket"
+    content: "Escalate customer issue to higher support tier or manager for priority handling."
+    keywords: ["escalate", "issue", "raise", "urgent", "support", "manager"]
+    metadata:
+      source: "yaml"
+      category: "support"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "create_support_ticket"
+    title: "Create Support Ticket"
+    content: "Create a support ticket for customer issue or complaint. Logs the case in the ticketing system."
+    keywords: ["support", "ticket", "complaint", "issue", "log", "case"]
+    metadata:
+      source: "yaml"
+      category: "support"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "update_ticket_status"
+    title: "Update Ticket Status"
+    content: "Update status of an existing support ticket. Allows for resolving, closing, or reopening cases."
+    keywords: ["update", "ticket", "status", "resolve", "close"]
+    metadata:
+      source: "yaml"
+      category: "support"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "get_customer_interactions"
+    title: "Get Customer Interactions"
+    content: "Retrieve past interactions including calls, emails, and chats. Provides a holistic view of touchpoints."
+    keywords: ["interactions", "history", "communication", "logs", "past"]
+    metadata:
+      source: "yaml"
+      category: "crm"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "schedule_followup"
+    title: "Schedule Follow-up"
+    content: "Schedule follow-up action or callback with customer. Adds a reminder to the agent's calendar."
+    keywords: ["followup", "callback", "reminder", "schedule"]
+    metadata:
+      source: "yaml"
+      category: "crm"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "get_pending_followups"
+    title: "Get Pending Follow-ups"
+    content: "Fetch pending follow-ups and action items from CRM. Helps agents prioritize their daily tasks."
+    keywords: ["pending", "followups", "tasks", "crm", "actions", "reminders"]
+    metadata:
+      source: "yaml"
+      category: "crm"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "check_product_inventory"
+    title: "Check Product Inventory"
+    content: "Check inventory availability for a product. Looks up stock levels across all regional warehouses."
+    keywords: ["inventory", "stock", "availability", "product"]
+    metadata:
+      source: "yaml"
+      category: "warehouse"
+      provider: "internal"
+      updated: "2025-04-07"
+
+  - id: "recommend_product"
+    title: "Recommend Product"
+    content: "Suggest products based on customer history or preferences. Used for upselling or cross-selling."
+    keywords: ["recommend", "suggestion", "upsell", "cross", "sell", "product"]
+    metadata:
+      source: "yaml"
+      category: "marketing"
+      provider: "internal"
+      updated: "2025-04-07"
