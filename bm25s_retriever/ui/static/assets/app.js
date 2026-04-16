@@ -366,8 +366,8 @@ function displayDocuments(documents) {
                     <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; word-wrap: break-word;">${escapeHtml(doc.id)}${sourceLabel}</td>
                     <td style="padding: 8px; border: 1px solid #ddd; max-width: 200px; word-wrap: break-word;">${escapeHtml(doc.title)}</td>
                     <td style="padding: 8px; border: 1px solid #ddd; max-width: 300px; word-wrap: break-word;">${escapeHtml(doc.content.substring(0, 100))}${doc.content.length > 100 ? '...' : ''}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; word-wrap: break-word;">${doc.keywords && doc.keywords.length > 0 ? doc.keywords.map(kw => `<span style="background: #f0f0f0; padding: 2px 4px; border-radius: 2px; margin: 1px; display: inline-block;">${escapeHtml(kw)}</span>`).join('') : '-'}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${deleteButton}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; max-width: 150px; word-wrap: break-word;">${doc.keywords && doc.keywords.length > 0 ? doc.keywords.map(kw => escapeHtml(kw)).join(', ') : '-'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; text-align: center; width: 80px;">${deleteButton}</td>
                 </tr>
             `;
         }).join('');

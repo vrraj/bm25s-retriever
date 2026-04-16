@@ -3,8 +3,10 @@
 documents:
   - id: "get_customer_profile"
     title: "Get Customer Profile"
-    content: "Retrieve customer details, account info, contact details, and status. Use this to identify the user and their account standing."
-    keywords: ["customer", "profile", "account", "details", "user", "info", "lookup"]
+    content: "Retrieve customer identity data, account status, and contact info."
+    keywords: ["customer profile", "account identity", "user lookup", "contact information"]
+    parameters:
+      customer_id: { type: "string", description: "The unique identifier for the customer." }
     metadata:
       source: "yaml"
       category: "crm"
@@ -13,8 +15,11 @@ documents:
 
   - id: "get_customer_orders"
     title: "Get Customer Orders"
-    content: "Fetch customer orders including open, closed, and priority orders. Provides a summary of the user's purchase history."
-    keywords: ["orders", "order", "history", "open", "closed", "priority"]
+    content: "Fetch a list of all historical purchases and transaction history."
+    keywords: ["order history", "purchase list", "transaction summary", "past orders"]
+    parameters:
+      customer_id: { type: "string", description: "ID of the customer whose orders are being retrieved." }
+      status: { type: "string", enum: ["open", "closed", "all"], default: "all" }
     metadata:
       source: "yaml"
       category: "orders"
@@ -23,8 +28,10 @@ documents:
 
   - id: "get_order_details"
     title: "Get Order Details"
-    content: "Get detailed information for a specific order by order ID, including line items and billing summary."
-    keywords: ["details", "status", "specific", "lookup", "id"]
+    content: "Access line-item specifics and billing for a unique order ID."
+    keywords: ["order breakdown", "sku details", "line items", "order info"]
+    parameters:
+      order_id: { type: "string", description: "The specific order tracking number or ID." }
     metadata:
       source: "yaml"
       category: "orders"
@@ -33,8 +40,13 @@ documents:
 
   - id: "create_order"
     title: "Create Order"
-    content: "Create a new order for a customer with product, quantity, and price. Generates a new transaction record."
-    keywords: ["create", "new", "place", "purchase", "order"]
+    content: "Process a new sales transaction and generate a billable event."
+    keywords: ["order creation", "new purchase", "checkout process", "place order"]
+    parameters:
+      customer_id: { type: "string" }
+      product_id: { type: "string" }
+      quantity: { type: "integer", minimum: 1 }
+      price: { type: "number" }
     metadata:
       source: "yaml"
       category: "orders"
@@ -43,8 +55,11 @@ documents:
 
   - id: "cancel_order"
     title: "Cancel Order"
-    content: "Cancel an existing customer order before fulfillment. Prevents the warehouse from shipping the items."
-    keywords: ["cancel", "stop", "revoke", "order"]
+    content: "Terminate an active transaction before fulfillment."
+    keywords: ["order cancellation", "void transaction", "stop shipment", "kill order"]
+    parameters:
+      order_id: { type: "string" }
+      reason: { type: "string", description: "Reason for cancellation provided by the customer." }
     metadata:
       source: "yaml"
       category: "orders"
@@ -53,8 +68,12 @@ documents:
 
   - id: "update_order"
     title: "Update Order"
-    content: "Modify an existing order including quantity, product, or shipping address before the order is processed."
-    keywords: ["update", "modify", "change", "edit", "order"]
+    content: "Modify shipment details or quantities for an unfulfilled transaction."
+    keywords: ["order modification", "edit purchase", "change quantity", "adjust order"]
+    parameters:
+      order_id: { type: "string" }
+      field: { type: "string", enum: ["quantity", "shipping_address", "product_id"] }
+      new_value: { type: "string" }
     metadata:
       source: "yaml"
       category: "orders"
@@ -63,8 +82,10 @@ documents:
 
   - id: "track_order"
     title: "Track Order"
-    content: "Track shipment status and delivery updates for an order. Connects to external logistics carriers."
-    keywords: ["track", "shipment", "delivery", "status", "shipping", "updates"]
+    content: "Retrieve real-time logistics data and courier tracking updates."
+    keywords: ["order tracking", "delivery status", "shipping logistics", "package location"]
+    parameters:
+      tracking_number: { type: "string" }
     metadata:
       source: "yaml"
       category: "logistics"
@@ -73,8 +94,11 @@ documents:
 
   - id: "process_refund"
     title: "Process Refund"
-    content: "Initiate refund for a returned or canceled order. Credits the money back to the original payment method."
-    keywords: ["refund", "return", "money", "back", "reimbursement"]
+    content: "Execute a financial reversal for a returned item."
+    keywords: ["billing refund", "payment reversal", "money back", "return credit"]
+    parameters:
+      order_id: { type: "string" }
+      amount: { type: "number", description: "Amount to refund. Leave null for full refund." }
     metadata:
       source: "yaml"
       category: "billing"
@@ -83,8 +107,11 @@ documents:
 
   - id: "process_exchange"
     title: "Process Exchange"
-    content: "Handle product exchange requests for a customer order. Swaps a current item for a replacement."
-    keywords: ["exchange", "replace", "product", "swap", "item"]
+    content: "Swap a purchase for a replacement item."
+    keywords: ["item exchange", "product swap", "replacement sku", "trade item"]
+    parameters:
+      original_order_id: { type: "string" }
+      new_product_id: { type: "string" }
     metadata:
       source: "yaml"
       category: "orders"
@@ -93,8 +120,12 @@ documents:
 
   - id: "email_customer"
     title: "Email Customer"
-    content: "Send email to customer regarding orders, updates, or issues. Supports manual messages and automated templates."
-    keywords: ["email", "notify", "send", "message", "communication"]
+    content: "Dispatch an outbound electronic message to the customer."
+    keywords: ["send email", "outbound message", "customer contact", "write customer"]
+    parameters:
+      customer_id: { type: "string" }
+      subject: { type: "string" }
+      body: { type: "string" }
     metadata:
       source: "yaml"
       category: "communication"
@@ -103,8 +134,11 @@ documents:
 
   - id: "notify_order_delay"
     title: "Notify Order Delay"
-    content: "Notify customer about delayed shipment or delivery issues. Automatically updates the communication log."
-    keywords: ["delay", "late", "shipment", "notify", "order"]
+    content: "Alert the customer that their shipment is behind schedule."
+    keywords: ["delay notification", "shipping alert", "late order warning", "backorder notice"]
+    parameters:
+      order_id: { type: "string" }
+      estimated_days_delay: { type: "integer" }
     metadata:
       source: "yaml"
       category: "communication"
@@ -113,8 +147,11 @@ documents:
 
   - id: "apply_discount"
     title: "Apply Discount"
-    content: "Apply discount or promo code to a customer order. Validates coupon codes against active marketing campaigns."
-    keywords: ["discount", "promo", "coupon", "apply", "offer"]
+    content: "Attach a promo code or price reduction to a transaction."
+    keywords: ["billing discount", "promo coupon", "price reduction", "add voucher"]
+    parameters:
+      order_id: { type: "string" }
+      promo_code: { type: "string" }
     metadata:
       source: "yaml"
       category: "billing"
@@ -123,8 +160,11 @@ documents:
 
   - id: "escalate_ticket"
     title: "Escalate Ticket"
-    content: "Escalate customer issue to higher support tier or manager for priority handling."
-    keywords: ["escalate", "issue", "raise", "urgent", "support", "manager"]
+    content: "Transfer a high-priority support case to management."
+    keywords: ["ticket escalation", "support tier", "manager review", "supervisor"]
+    parameters:
+      ticket_id: { type: "string" }
+      priority: { type: "string", enum: ["high", "urgent", "critical"] }
     metadata:
       source: "yaml"
       category: "support"
@@ -133,8 +173,12 @@ documents:
 
   - id: "create_support_ticket"
     title: "Create Support Ticket"
-    content: "Create a support ticket for customer issue or complaint. Logs the case in the ticketing system."
-    keywords: ["support", "ticket", "complaint", "issue", "log", "case"]
+    content: "Log a formal complaint or technical issue into the system."
+    keywords: ["ticket creation", "helpdesk case", "support incident", "new ticket"]
+    parameters:
+      customer_id: { type: "string" }
+      issue_category: { type: "string", enum: ["technical", "billing", "shipping", "general"] }
+      description: { type: "string" }
     metadata:
       source: "yaml"
       category: "support"
@@ -143,8 +187,11 @@ documents:
 
   - id: "update_ticket_status"
     title: "Update Ticket Status"
-    content: "Update status of an existing support ticket. Allows for resolving, closing, or reopening cases."
-    keywords: ["update", "ticket", "status", "resolve", "close"]
+    content: "Change the workflow state of an existing support case."
+    keywords: ["ticket status change", "resolve incident", "close case", "finish ticket"]
+    parameters:
+      ticket_id: { type: "string" }
+      status: { type: "string", enum: ["pending", "in_progress", "resolved", "closed"] }
     metadata:
       source: "yaml"
       category: "support"
@@ -153,8 +200,11 @@ documents:
 
   - id: "get_customer_interactions"
     title: "Get Customer Interactions"
-    content: "Retrieve past interactions including calls, emails, and chats. Provides a holistic view of touchpoints."
-    keywords: ["interactions", "history", "communication", "logs", "past"]
+    content: "View a timeline of all previous communications and logs."
+    keywords: ["interaction logs", "comms history", "touchpoint timeline", "chat history"]
+    parameters:
+      customer_id: { type: "string" }
+      limit: { type: "integer", default: 10 }
     metadata:
       source: "yaml"
       category: "crm"
@@ -163,8 +213,11 @@ documents:
 
   - id: "schedule_followup"
     title: "Schedule Follow-up"
-    content: "Schedule follow-up action or callback with customer. Adds a reminder to the agent's calendar."
-    keywords: ["followup", "callback", "reminder", "schedule"]
+    content: "Set a future reminder or callback appointment."
+    keywords: ["crm followup", "callback schedule", "agent reminder", "plan call"]
+    parameters:
+      customer_id: { type: "string" }
+      date_time: { type: "string", format: "date-time" }
     metadata:
       source: "yaml"
       category: "crm"
@@ -173,8 +226,10 @@ documents:
 
   - id: "get_pending_followups"
     title: "Get Pending Follow-ups"
-    content: "Fetch pending follow-ups and action items from CRM. Helps agents prioritize their daily tasks."
-    keywords: ["pending", "followups", "tasks", "crm", "actions", "reminders"]
+    content: "Query the CRM for overdue or upcoming action items."
+    keywords: ["pending tasks", "crm todo", "overdue followups", "my list"]
+    parameters:
+      agent_id: { type: "string" }
     metadata:
       source: "yaml"
       category: "crm"
@@ -183,8 +238,11 @@ documents:
 
   - id: "check_product_inventory"
     title: "Check Product Inventory"
-    content: "Check inventory availability for a product. Looks up stock levels across all regional warehouses."
-    keywords: ["inventory", "stock", "availability", "product"]
+    content: "Verify on-hand stock levels for a specific SKU."
+    keywords: ["inventory check", "warehouse stock", "sku availability", "stock levels"]
+    parameters:
+      product_id: { type: "string" }
+      warehouse_location: { type: "string", default: "all" }
     metadata:
       source: "yaml"
       category: "warehouse"
@@ -193,8 +251,11 @@ documents:
 
   - id: "recommend_product"
     title: "Recommend Product"
-    content: "Suggest products based on customer history or preferences. Used for upselling or cross-selling."
-    keywords: ["recommend", "suggestion", "upsell", "cross", "sell", "product"]
+    content: "Suggest complementary items based on purchase history."
+    keywords: ["marketing upsell", "product recommendation", "cross sell", "suggest items"]
+    parameters:
+      customer_id: { type: "string" }
+      category_preference: { type: "string" }
     metadata:
       source: "yaml"
       category: "marketing"
