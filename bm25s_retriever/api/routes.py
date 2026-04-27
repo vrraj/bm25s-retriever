@@ -72,7 +72,7 @@ def create_app(config: Config = None) -> FastAPI:
             if request.ignore_zero is not None:
                 kwargs["ignore_zero"] = request.ignore_zero
             if request.llm_tools_cutoff is not None:
-                kwargs["llm_tools_cutoff"] = request.llm_tools_cutoff
+                kwargs["llm_tools_cutoff"] = request.llm_tools_cutoff if request.llm_tools_cutoff else 0.0
             
             result = retriever.retrieve_documents(request.query, **kwargs)
             

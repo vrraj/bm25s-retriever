@@ -97,7 +97,13 @@ async function performSearch() {
     }
     
     const temperature = parseFloat(document.getElementById('search-temperature').value);
-    const cutoff = parseFloat(document.getElementById('search-cutoff').value);
+    const cutoffInput = document.getElementById('search-cutoff').value;
+    const cutoff = cutoffInput === '' ? 0.0 : parseFloat(cutoffInput);
+    
+    // Update UI to show 0 if user cleared the field
+    if (cutoffInput === '') {
+        document.getElementById('search-cutoff').value = '0.0';
+    }
     const ignoreZero = document.getElementById('search-ignore-zero').checked;
     
     try {
@@ -461,7 +467,13 @@ function updateSearchTabDefaults(settings) {
 async function saveSettings() {
     const temperature = parseFloat(document.getElementById('settings-temperature').value);
     const ignoreZero = document.getElementById('settings-ignore-zero').checked;
-    const cutoff = parseFloat(document.getElementById('settings-cutoff').value);
+    const cutoffInput = document.getElementById('settings-cutoff').value;
+    const cutoff = cutoffInput === '' ? 0.0 : parseFloat(cutoffInput);
+    
+    // Update UI to show 0 if user cleared the field
+    if (cutoffInput === '') {
+        document.getElementById('settings-cutoff').value = '0.0';
+    }
     
     try {
         showMessage('settings-result', 'Saving settings...', 'info');

@@ -227,7 +227,7 @@ documents:
   - id: "get_pending_followups"
     title: "Get Pending Follow-ups"
     content: "Query the CRM for overdue or upcoming action items."
-    keywords: ["pending tasks", "crm todo", "overdue followups", "my list"]
+    keywords: ["pending tasks", "crm todo", "overdue followups"]
     parameters:
       agent_id: { type: "string" }
     metadata:

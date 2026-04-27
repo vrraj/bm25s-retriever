@@ -42,7 +42,7 @@ class Document:
 class BM25SRetriever:
     """BM25S-based document retrieval system with softmax scoring and cutoff filtering."""
     
-    def __init__(self, settings: BM25SSettings = None, document_file: str = "source_files/documents.yaml"):
+    def __init__(self, settings: BM25SSettings = None, document_file: str = "source_files/tools_list.yaml"):
         self.settings = settings or BM25SSettings()
         self.stemmer = Stemmer.Stemmer("english")
         self.documents: List[Document] = []
