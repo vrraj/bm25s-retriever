@@ -171,6 +171,27 @@ bm25s-server --config settings.yaml
 python scripts/rest_api_examples.py
 ```
 
+**curl API Examples**
+- [scripts/curl_api_examples.sh](https://github.com/vrraj/bm25s-retriever/blob/main/scripts/curl_api_examples.sh)
+- Command-line API operations using curl
+- All REST endpoints demonstrated
+- No Python required
+
+```bash
+# Start server first
+bm25s-server --config settings.yaml
+
+# Then run curl examples
+./scripts/curl_api_examples.sh
+```
+
+Quick curl example:
+```bash
+curl -X POST http://localhost:9200/retrieve \
+  -H "Content-Type: application/json" \
+  -d '{"query": "customer profile"}'
+```
+
 **LLM Tool Routing Examples** (Primary Use Case)
 - [scripts/llm_tool_routing_example.py](https://github.com/vrraj/bm25s-retriever/blob/main/scripts/llm_tool_routing_example.py)
 - User query → BM25S retrieval → Filtered tools → LLM context
