@@ -3,17 +3,19 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bm25s-retriever"
+name = "vrraj-bm25s-retriever"
 version = "1.0.0"
-description = "A standalone BM25S-based document retrieval service"
-authors = [{name = "BM25S Retriever Team", email = "team@bm25s-retriever.com"}]
-license = {text = "MIT"}
+description = "BM25S + PyStemmer-powered lexical retrieval (with stemming) and routing layer for LLM tools, documents, and hybrid RAG"
+authors = [{name = "Raj Rajkumar"}]
+license = "MIT"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -22,6 +24,8 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
+
+keywords = ["bm25", "bm25s", "retrieval", "lexical-search", "llm", "rag", "tool-routing", "hybrid-rag", "pystemmer", "fastapi"]
 
 dependencies = [
     "bm25s>=0.3.2.post1",
@@ -50,9 +54,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/bm25s-retriever/bm25s-retriever"
-Repository = "https://github.com/bm25s-retriever/bm25s-retriever"
-Documentation = "https://bm25s-retriever.readthedocs.io"
+Homepage = "https://github.com/vrraj/bm25s-retriever"
+Repository = "https://github.com/vrraj/bm25s-retriever"
+Documentation = "https://vrraj.github.io/bm25s-retriever/"
 
 [project.scripts]
 bm25s-server = "bm25s_retriever.cli:main"

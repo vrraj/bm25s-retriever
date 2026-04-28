@@ -210,6 +210,122 @@ for query, temps in batch_results.items():
         print(f"  {temp_key}: {stats['count']} docs, avg: {stats['avg_score']:.3f}")
 ```
 
+## Document Structure and Indexing
+
+### Which YAML Fields Are Indexed
+
+The BM25S retriever indexes specific fields from your YAML documents to enable searching:
+
+#### Indexed Fields (Searchable)
+- **`title`** - Document title, fully searchable
+- **`content`** - Document content/description, fully searchable  
+- **`keywords`** - Keyword list, each keyword prefixed with "keyword:" for search
+
+#### Stored Fields (Not Searchable)
+- **`id`** - Document identifier, stored for retrieval but not searched
+- **`parameters`** - Function parameters, stored in metadata only
+- **`metadata`** - All metadata fields, stored but not indexed
+
+### How Indexing Works
+
+The system combines indexed fields into a single searchable text:
+
+```python
+# For each document, the search index contains:
+title + " " + content + " keyword: keyword1 keyword: keyword2 ..."
+```
+
+**Example:**
+```yaml
+- id: "create_order"
+  title: "Create New Order"
+  content: "Start a new purchase, buy a product, or place a customer order."
+  keywords: ["buy", "purchase", "place order", "checkout"]
+```
+
+This becomes searchable as:
+```
+"Create New Order Start a new purchase, buy a product, or place a customer order. keyword: buy keyword: purchase keyword: place order keyword: checkout"
+```
+
+### Search Optimization Tips
+
+1. **Title**: Use descriptive, action-oriented titles that users might search for
+2. **Content**: Include natural language descriptions with common search terms
+3. **Keywords**: Add synonyms, abbreviations, and alternative phrasing users might type
+4. **Avoid**: Don't put searchable content in `id`, `parameters`, or `metadata` fields
+
+## YAML Structure Requirements
+
+### Field Definitions and Usage
+
+#### Required Fields
+```yaml
+- id: "unique_identifier"     # Required: Document ID
+  title: "Document Title"     # Required: Searchable title
+  content: "Description..."   # Required: Searchable content
+```
+
+#### Keywords vs Metadata
+
+**Keywords** (Searchable):
+- **Purpose**: Terms users actually type when searching
+- **Format**: List of strings
+- **Indexed**: ✅ Added to BM25S search index with "keyword:" prefix
+- **Use for**: Synonyms, abbreviations, alternative phrasing, action verbs
+- **Example**: 
+  ```yaml
+  keywords: ["buy", "purchase", "place order", "checkout", "start transaction"]
+  ```
+
+**Metadata** (Not Searchable):
+- **Purpose**: Document context and reference information
+- **Format**: Dictionary of key-value pairs
+- **Indexed**: ❌ Stored but not searchable
+- **Use for**: Categorization, provider info, timestamps, configuration data
+- **Example**:
+  ```yaml
+  metadata:
+    category: "orders"
+    provider: "internal"
+    updated: "2025-04-07"
+    version: "1.2"
+  ```
+
+### Complete YAML Structure Example
+
+```yaml
+documents:
+  - id: "create_order"
+    title: "Create New Order"
+    content: "Start a new purchase, buy a product, or place a customer order. Use this to initiate a checkout process for items."
+    keywords:
+      - "buy"
+      - "purchase"
+      - "place order"
+      - "checkout"
+      - "start transaction"
+      - "order item"
+      - "buy product"
+      - "new sale"
+    parameters:
+      customer_id: { type: "string" }
+      product_id: { type: "string" }
+      quantity: { type: "integer", minimum: 1 }
+      price: { type: "number" }
+    metadata:
+      source: "yaml"
+      category: "orders"
+      provider: "internal"
+      updated: "2025-04-07"
+```
+
+### Field Compatibility
+
+- **New fields**: Additional YAML fields are ignored - won't break the system
+- **Missing optional fields**: Uses defaults (empty list for keywords, empty dict for metadata)
+- **Required fields**: Must be present or system will fail to load documents
+
 ## Search Parameters Reference
 
 | Parameter | Type | Default | Range | Description |
@@ -222,8 +338,19 @@ for query, temps in batch_results.items():
 ### Parameter Effects
 
 #### Temperature Impact
+
+**Understanding Temperature Effects**
+
+Temperature controls how "sharp" or "flat" the softmax distribution is:
+
+- **If you go above 1.0 (High Temp)**: You are "flattening" the distribution. You make it harder for the top choice to win. The probabilities get closer together (everything becomes more "random").
+
+- **If you go below 1.0 (Low Temp)**: You are "sharpening" the distribution. You make the top choice stand out significantly more than the others.
+
+**Practical Temperature Ranges**
+
 - **0.1-0.5**: Very focused results, high contrast between top and lower scores
-- **0.5-1.5**: Balanced results, good for most use cases
+- **0.5-1.5**: Balanced results, good for most use cases  
 - **1.5-5.0**: More uniform distribution, less dramatic score differences
 - **5.0-10.0**: Very uniform scores, useful for exploration
 

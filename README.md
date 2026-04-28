@@ -7,9 +7,67 @@
 > **Development and Demo UI:**  
 > This repository ships with a FastAPI-powered **Interactive Web Interface** for testing BM25S document retrieval, managing document collections, and configuring search parameters. See **[Development And Demo UI](#development-and-demo-ui)** section below for details and setup instructions.
 
-Provider-agnostic BM25S document retrieval service with **web interface + REST API** for semantic document search, indexing, and management with **normalized outputs** (scores, rankings, metadata).
+A lightweight BM25S-powered retrieval package with **Python API, REST service, and demo UI** for lexical search, indexing, and management with **normalized outputs** (scores, rankings, metadata).
 
-High-performance BM25S-based document retrieval with stemming, softmax scoring, and configurable filtering.
+Positioned as a **lexical routing layer for LLM systems**, enabling efficient context filtering across tools, documents, and chunked data.
+
+
+Built for fast lexical retrieval using BM25S and PyStemmer, with stemming, softmax relevance scoring, configurable filtering, and a clean response schema for application integration — optimized for LLM context control, tool routing, and hybrid RAG pipelines.
+
+## Use Cases: LLM Tool Routing and Hybrid Retrieval
+
+This package is primarily designed for **LLM-driven systems** where controlling tool/context exposure is critical.
+
+### 1. Tool Filtering for LLMs (Primary Use Case)
+In domain-specific systems (trading, customer support, CRM, finance, operations), user intent is typically narrow and well-defined.
+
+Instead of exposing the full tool registry to the LLM, BM25S can be used to:
+
+- Retrieve only the **most relevant tools** for a given user query
+- Reduce **tool context bloat** in prompts
+- Minimize **LLM confusion across similar tools**
+- Lower **token usage and cost**
+- Enforce **guardrails and permissions** by controlling which tools are surfaced
+
+This fits naturally into a pipeline:
+
+```
+User Query → BM25S Retrieval → Filtered Tool Set → LLM Tool Selection → Execution
+```
+
+### 2. Domain-Constrained Retrieval
+For structured domains like:
+- Trading / market data
+- Customer support workflows
+- CRM operations
+- Financial systems
+
+BM25S enables fast lexical matching against curated tool/document sets, ensuring the LLM operates within a **tight, relevant context window**.
+
+### 3. Hybrid RAG (Lexical + Semantic)
+While BM25S is lexical, it can complement semantic retrieval systems:
+
+- Use BM25S for **high-precision keyword matching**
+- Combine with embeddings for **semantic recall**
+- Merge results for a **hybrid RAG pipeline**
+
+This is especially useful when:
+- Exact terms matter (tickers, IDs, commands)
+- Semantic models may miss domain-specific keywords
+
+### 4. Lightweight Retrieval Layer
+For many applications, full vector search infrastructure is unnecessary.
+
+BM25S + PyStemmer provides:
+- Fast in-memory lexical retrieval
+- Stemming-aware matching for better recall across word variants
+- Simple setup (no external DB required)
+- Deterministic, explainable scoring
+
+Ideal for:
+- Tool selection layers
+- Small-to-medium document sets
+- Low-latency applications
 
 - **PyPI:** https://pypi.org/project/vrraj-bm25s-retriever
 - **GitHub:** https://github.com/vrraj/bm25s-retriever
@@ -22,40 +80,43 @@ pip install vrraj-bm25s-retriever
 ```
 
 ## What you get
-
-- **Fast BM25S retrieval** with English stemming and stopwords filtering
-- **Web Interface** for document management and search testing
-- **REST API** for programmatic access and integration
+- **BM25S retrieval library** for programmatic lexical document and tool search
+- **HTTP client API** for remote service integration
 - **Softmax scoring** with temperature-controlled relevance
 - **Configurable filtering** (zero-relevance, cutoff thresholds)
-- **Document management** (add, view, delete via API/UI)
-- **YAML-based document storage** with hot-reload support
+- **Document management** via Python API or HTTP client
 - **Normalized response format** across all interfaces
+- **Demo Web Interface** for testing and development (GitHub only)
 
-## Quickstart
-
-> **Default configuration:** Ships with example financial documents and sensible defaults
+> **Primary use case:** Programmatic lexical retrieval via Python API
 > 
-> **Setup:** The package includes example documents and configuration files
+> **Secondary use case:** HTTP client API for remote service integration
 
-```bash
-# Start the server with default configuration
-bm25s-server --config settings.yaml
+### Option A: Direct Library Usage (Recommended)
 
-# Access the web interface
-open http://localhost:9200
+```python
+from bm25s_retriever import BM25SRetriever, Document
+
+# Create retriever instance
+retriever = BM25SRetriever()
+
+# Add documents programmatically
+doc = Document(
+    id="doc1",
+    title="Financial Planning Guide", 
+    content="Comprehensive guide to personal financial planning",
+    keywords=["finance", "planning", "investment"]
+)
+
+retriever.add_documents([doc])
+
+# Search documents
+results = retriever.retrieve_documents("investment strategies")
+for doc in results['documents']:
+    print(f"{doc['title']}: {doc['bm25_score']:.2f}")
 ```
 
-### Option A: Ready-to-use example script
-Download and run a ready-to-use example script for document management and search:
-
-```bash
-curl -L -O https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/examples/bm25s_basic_usage.py
-
-python bm25s_basic_usage.py
-```
-
-### Option B: Call the API directly
+### Option B: HTTP Client API
 
 ```python
 from bm25s_retriever import BM25SClient
@@ -75,6 +136,52 @@ client.add_document({
 })
 ```
 
+### Option C: Ready-to-use Example Script
+
+```bash
+curl -L -O https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/examples/bm25s_basic_usage.py
+python bm25s_basic_usage.py
+```
+
+### Option D: Sample Scripts (GitHub)
+
+For comprehensive usage examples, see the `scripts/` directory:
+
+**YAML File Usage Examples**
+- [scripts/load_yaml_documents.py](https://github.com/vrraj/bm25s-retriever/blob/main/scripts/load_yaml_documents.py)
+- Loading documents from custom YAML files
+- Search configuration examples
+- Document management patterns
+
+```bash
+python scripts/load_yaml_documents.py
+```
+
+**REST API Usage Examples**  
+- [scripts/rest_api_examples.py](https://github.com/vrraj/bm25s-retriever/blob/main/scripts/rest_api_examples.py)
+- HTTP client API operations
+- Document management via REST
+- Error handling patterns
+
+```bash
+# Start server first
+bm25s-server --config settings.yaml
+
+# Then run API examples
+python scripts/rest_api_examples.py
+```
+
+**LLM Tool Routing Examples** (Primary Use Case)
+- [scripts/llm_tool_routing_example.py](https://github.com/vrraj/bm25s-retriever/blob/main/scripts/llm_tool_routing_example.py)
+- User query → BM25S retrieval → Filtered tools → LLM context
+- Context window optimization
+- Permission-based routing
+- Token usage reduction
+
+```bash
+python scripts/llm_tool_routing_example.py
+```
+
 ### Discover available documents
 
 The package ships with example documents. To list them:
@@ -89,14 +196,21 @@ for doc in documents['documents']:
     print(f"{doc['id']}: {doc['title']}")
 ```
 
-## Interactive Web Interface
+## Demo Web Interface (GitHub)
 
-The package includes a FastAPI web interface with document management, search testing, and configuration controls.
+The repository includes a FastAPI demo UI for testing BM25S retrieval, inspecting ranked results, and tuning search configuration. This is primarily for development and testing purposes.
 
 ![BM25S Retriever Web Interface](https://github.com/vrraj/bm25s-retriever/blob/main/images/bm25s_web_interface.png)
 
 ## Public API (overview)
 
+### Library API (Direct Usage)
+- `BM25SRetriever()` - Create retriever instance
+- `retriever.add_documents(...) -> None` - Add documents to index
+- `retriever.retrieve_documents(...) -> Dict` - Search with BM25S scoring
+
+### Client API (HTTP Service)
+- `BM25SClient(base_url)` - Create HTTP client
 - `client.retrieve(...) -> Dict` - Search documents with BM25S scoring
 - `client.add_document(...) -> Dict` - Add new document to index
 - `client.get_documents() -> Dict` - Get all documents
@@ -145,7 +259,7 @@ bm25s:
   llm_tools_cutoff: 8.0     # Softmax cutoff percentage
 
 documents:
-  source: "documents.yaml" # Document source file
+  source: "source_files/tools_list.yaml" # Document source file
   auto_reload: true        # Auto-reload on file changes
 
 server:
@@ -154,7 +268,7 @@ server:
   reload: false           # Auto-reload on code changes
 ```
 
-### documents.yaml
+### tools_list.yaml
 ```yaml
 documents:
   - id: "example_doc"
@@ -172,6 +286,28 @@ documents:
 - **Configuration Guide:** [configuration.md](https://github.com/vrraj/bm25s-retriever/blob/main/docs/configuration.md)
 - **Ready to use Examples:** [examples](https://github.com/vrraj/bm25s-retriever/tree/main/examples)
 - **Dev notes:** [development.md](https://github.com/vrraj/bm25s-retriever/blob/main/docs/development.md)
+
+### LLM Tool Routing (Primary Use Case)
+
+**Core Pattern:** User Query → BM25S Retrieval → Filtered Tools → LLM Context
+
+The package is designed as a **lexical routing layer** for LLM systems, enabling efficient context filtering across tools, documents, and chunked data. This addresses critical LLM system challenges:
+
+- **Context Window Optimization** - Reduce from hundreds of tools to 5-10 relevant ones
+- **Tool Confusion Prevention** - Eliminate similar tool options that confuse LLMs  
+- **Token Usage Reduction** - 90%+ reduction in context tokens
+- **Permission Enforcement** - Filter tools by user access rights
+- **Hybrid RAG Integration** - Combine lexical and semantic retrieval
+
+**Complete Implementation Example:**
+- [scripts/llm_tool_routing_example.py](https://github.com/vrraj/bm25s-retriever/blob/main/scripts/llm_tool_routing_example.py)
+- Demonstrates user query → tool filtering → LLM integration
+- Shows context window analysis and permission-based routing
+- Provides configurable routing strategies (precise, balanced, broad)
+
+```bash
+python scripts/llm_tool_routing_example.py
+```
 
 ---
 
@@ -317,23 +453,49 @@ curl http://localhost:9200/documents
 curl -X DELETE http://localhost:9200/documents/financial_report
 ```
 
-## BM25S Algorithm
+## Document Structure and Indexing
 
-The retriever uses BM25S with the following features:
+### Searchable Fields
+- **`title`** - Document title (searchable)
+- **`content`** - Document body or description (searchable)  
+- **`keywords`** - User search terms (searchable, prefixed with "keyword:")
 
-- **Stemming**: English stemming for word normalization (e.g., "trading" -> "trade")
-- **Stopwords**: Common words filtered out to improve relevance
-- **Softmax Scoring**: Temperature-controlled relevance scoring
-- **Cutoff Filtering**: Results below threshold are filtered out
+### Reference Fields (Not Searchable)
+- **`id`**, `parameters`, `metadata` - Stored for reference only
 
-### Scoring Formula
-```
-BM25S Score + Softmax(temperature) + Cutoff Filter
-```
+### Quick Tips
+- **Keywords**: Add synonyms and terms users actually type
+- **Metadata**: Use for categorization, timestamps, configuration
+- **Title & Content**: Include the natural language users are likely to type
+
+## Search Scoring and Parameters
+
+### Stemming
+
+The retriever uses **PyStemmer** to improve lexical recall by matching related word forms.
+
+For example:
+- `trade`, `trading`, and `traded`
+- `invest`, `investing`, and `investment`
+- `order`, `orders`, and `ordering`
+
+This is especially useful for LLM tool routing, where user phrasing may differ slightly from the tool description.
 
 ### Temperature Control
-- **Low temperature (0.1-0.5)**: More selective, higher confidence results
-- **High temperature (0.8-2.0)**: More uniform distribution across results
+- **Low (0.1-0.5)**: Focused, precise results
+- **Medium (0.5-1.5)**: Balanced results (default: 0.7)
+- **High (1.5+)**: Broad, exploratory results
+
+### Cutoff Percentage
+- **5-15%**: Standard range (default: 8%)
+- **Lower**: More inclusive results
+- **Higher**: Only highly relevant matches
+
+### Score Interpretation
+- **>20%**: Strong match
+- **8-20%**: Good match  
+- **<8%**: Weak match
+- **0%**: No relevance
 
 ## Development And Demo UI
 
@@ -402,7 +564,11 @@ bm25s-retriever/
 |   |   |-- templates/         # HTML templates
 |   |   |-- static/           # CSS/JS assets
 |   |-- cli.py                # Command-line interface
-|-- documents.yaml             # Example documents
+|-- scripts/                   # Sample scripts
+|   |-- load_yaml_documents.py # YAML file usage examples
+|   |-- rest_api_examples.py  # REST API usage examples
+|-- source_files/              # Document sources
+|   |-- tools_list.yaml       # Example tool definitions
 |-- settings.yaml              # Configuration
 |-- pyproject.toml            # Package metadata
 |-- examples/                  # Usage examples
@@ -420,7 +586,7 @@ BM25S_PORT=9200
 BM25S_RELOAD=false
 
 # Document configuration
-BM25S_DOCUMENTS_PATH=./documents.yaml
+BM25S_DOCUMENTS_PATH=./source_files/tools_list.yaml
 BM25S_AUTO_RELOAD=true
 
 # BM25S defaults
@@ -441,6 +607,30 @@ documents:
     metadata:
       category: "finance"
       author: "John Doe"
+```
+
+#### Mandatory Fields
+- **`id`** (required) - Unique identifier for the document
+- **`title`** (required) - Document title used for search and display
+- **`content`** (required) - Document body or description for search indexing
+
+#### Optional Fields
+- **`keywords`** (optional) - List of search terms and synonyms
+- **`metadata`** (optional) - Dictionary for categorization, timestamps, etc.
+- **`parameters`** (optional) - Tool parameter definitions (stored in metadata)
+
+#### Custom YAML Files
+Load documents from a custom YAML file:
+
+```python
+from bm25s_retriever import BM25SRetriever
+
+# Load from custom file
+retriever = BM25SRetriever(document_file="path/to/your/tools_list.yaml")
+
+# Or use with documents parameter
+retriever = BM25SRetriever()
+retriever.add_documents(your_document_list)
 ```
 
 ### JSON API Format
@@ -506,7 +696,7 @@ client.add_document({
 ```
 
 ### Via YAML File
-Add to `documents.yaml` and reload:
+Add to `tools_list.yaml` and reload:
 ```yaml
 documents:
   - id: "custom_doc"

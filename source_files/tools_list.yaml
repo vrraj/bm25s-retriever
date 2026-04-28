@@ -1,10 +1,10 @@
-# tools_list.yaml - Optimized Enterprise CSR Toolset for BM25S Testing
+# tools_list.yaml - Intent-Optimized for BM25S
 
 documents:
   - id: "get_customer_profile"
     title: "Get Customer Profile"
-    content: "Retrieve customer identity data, account status, and contact info."
-    keywords: ["customer profile", "account identity", "user lookup", "contact information"]
+    content: "Lookup customer account details, contact information, profile settings, and membership status."
+    keywords: ["customer profile", "account details", "contact info", "user lookup", "who is this customer", "customer data"]
     parameters:
       customer_id: { type: "string", description: "The unique identifier for the customer." }
     metadata:
@@ -15,8 +15,8 @@ documents:
 
   - id: "get_customer_orders"
     title: "Get Customer Orders"
-    content: "Fetch a list of all historical purchases and transaction history."
-    keywords: ["order history", "purchase list", "transaction summary", "past orders"]
+    content: "Fetch a list of all historical purchases, transaction history, and order summaries for a specific customer."
+    keywords: ["order history", "purchase history", "past orders", "what did they buy", "transaction list", "find orders"]
     parameters:
       customer_id: { type: "string", description: "ID of the customer whose orders are being retrieved." }
       status: { type: "string", enum: ["open", "closed", "all"], default: "all" }
@@ -28,8 +28,8 @@ documents:
 
   - id: "get_order_details"
     title: "Get Order Details"
-    content: "Access line-item specifics and billing for a unique order ID."
-    keywords: ["order breakdown", "sku details", "line items", "order info"]
+    content: "Retrieve specific line-item data, billing details, and status for a single order ID."
+    keywords: ["order breakdown", "order status", "billing details", "order info", "sku list", "what is in this order"]
     parameters:
       order_id: { type: "string", description: "The specific order tracking number or ID." }
     metadata:
@@ -39,9 +39,17 @@ documents:
       updated: "2025-04-07"
 
   - id: "create_order"
-    title: "Create Order"
-    content: "Process a new sales transaction and generate a billable event."
-    keywords: ["order creation", "new purchase", "checkout process", "place order"]
+    title: "Create New Order"
+    content: "Start a new purchase, buy a product, or place a customer order. Use this to initiate a checkout process for items."
+    keywords: 
+      - "buy"
+      - "purchase"
+      - "place order"
+      - "checkout"
+      - "start transaction"
+      - "order item"
+      - "buy product"
+      - "new sale"
     parameters:
       customer_id: { type: "string" }
       product_id: { type: "string" }
@@ -55,8 +63,8 @@ documents:
 
   - id: "cancel_order"
     title: "Cancel Order"
-    content: "Terminate an active transaction before fulfillment."
-    keywords: ["order cancellation", "void transaction", "stop shipment", "kill order"]
+    content: "Void or cancel an order that has not been shipped yet."
+    keywords: ["cancel order", "void order", "stop shipping", "undo purchase", "delete order", "cancel transaction"]
     parameters:
       order_id: { type: "string" }
       reason: { type: "string", description: "Reason for cancellation provided by the customer." }
@@ -68,8 +76,8 @@ documents:
 
   - id: "update_order"
     title: "Update Order"
-    content: "Modify shipment details or quantities for an unfulfilled transaction."
-    keywords: ["order modification", "edit purchase", "change quantity", "adjust order"]
+    content: "Change order details like quantity, shipping address, or product selections for an existing order."
+    keywords: ["change order", "edit purchase", "update quantity", "wrong address", "modify order", "switch product"]
     parameters:
       order_id: { type: "string" }
       field: { type: "string", enum: ["quantity", "shipping_address", "product_id"] }
@@ -82,8 +90,8 @@ documents:
 
   - id: "track_order"
     title: "Track Order"
-    content: "Retrieve real-time logistics data and courier tracking updates."
-    keywords: ["order tracking", "delivery status", "shipping logistics", "package location"]
+    content: "Get the current shipping status, courier location, and delivery tracking information."
+    keywords: ["track package", "where is my order", "delivery status", "shipping update", "tracking number", "shipment location"]
     parameters:
       tracking_number: { type: "string" }
     metadata:
@@ -94,8 +102,8 @@ documents:
 
   - id: "process_refund"
     title: "Process Refund"
-    content: "Execute a financial reversal for a returned item."
-    keywords: ["billing refund", "payment reversal", "money back", "return credit"]
+    content: "Issue a full or partial refund to a customer for a returned order."
+    keywords: ["refund", "money back", "return credit", "reimburse", "credit back", "billing reversal"]
     parameters:
       order_id: { type: "string" }
       amount: { type: "number", description: "Amount to refund. Leave null for full refund." }
@@ -107,8 +115,8 @@ documents:
 
   - id: "process_exchange"
     title: "Process Exchange"
-    content: "Swap a purchase for a replacement item."
-    keywords: ["item exchange", "product swap", "replacement sku", "trade item"]
+    content: "Swap an item from a previous order for a different product or size."
+    keywords: ["exchange", "swap item", "replacement", "trade product", "wrong size", "different item"]
     parameters:
       original_order_id: { type: "string" }
       new_product_id: { type: "string" }
@@ -120,8 +128,8 @@ documents:
 
   - id: "email_customer"
     title: "Email Customer"
-    content: "Dispatch an outbound electronic message to the customer."
-    keywords: ["send email", "outbound message", "customer contact", "write customer"]
+    content: "Send an email message to a customer regarding their account or inquiries."
+    keywords: ["send email", "message customer", "contact customer", "write email", "notify via email"]
     parameters:
       customer_id: { type: "string" }
       subject: { type: "string" }
@@ -134,8 +142,8 @@ documents:
 
   - id: "notify_order_delay"
     title: "Notify Order Delay"
-    content: "Alert the customer that their shipment is behind schedule."
-    keywords: ["delay notification", "shipping alert", "late order warning", "backorder notice"]
+    content: "Alert a customer about a shipment delay or backorder status for their package."
+    keywords: ["order delay", "shipping late", "backordered", "notify delay", "package stuck"]
     parameters:
       order_id: { type: "string" }
       estimated_days_delay: { type: "integer" }
@@ -147,8 +155,8 @@ documents:
 
   - id: "apply_discount"
     title: "Apply Discount"
-    content: "Attach a promo code or price reduction to a transaction."
-    keywords: ["billing discount", "promo coupon", "price reduction", "add voucher"]
+    content: "Apply a promo code, coupon, or price discount to an existing order."
+    keywords: ["add coupon", "apply discount", "promo code", "voucher", "price reduction", "cheaper"]
     parameters:
       order_id: { type: "string" }
       promo_code: { type: "string" }
@@ -160,8 +168,8 @@ documents:
 
   - id: "escalate_ticket"
     title: "Escalate Ticket"
-    content: "Transfer a high-priority support case to management."
-    keywords: ["ticket escalation", "support tier", "manager review", "supervisor"]
+    content: "Escalate a support ticket to a manager or higher priority team for urgent resolution."
+    keywords: ["escalate", "manager", "urgent", "supervisor", "priority", "tier 2"]
     parameters:
       ticket_id: { type: "string" }
       priority: { type: "string", enum: ["high", "urgent", "critical"] }
@@ -173,8 +181,8 @@ documents:
 
   - id: "create_support_ticket"
     title: "Create Support Ticket"
-    content: "Log a formal complaint or technical issue into the system."
-    keywords: ["ticket creation", "helpdesk case", "support incident", "new ticket"]
+    content: "Open a new support case or log a customer issue for investigation."
+    keywords: ["open ticket", "helpdesk", "support case", "problem", "issue", "complain", "tech support"]
     parameters:
       customer_id: { type: "string" }
       issue_category: { type: "string", enum: ["technical", "billing", "shipping", "general"] }
@@ -187,8 +195,8 @@ documents:
 
   - id: "update_ticket_status"
     title: "Update Ticket Status"
-    content: "Change the workflow state of an existing support case."
-    keywords: ["ticket status change", "resolve incident", "close case", "finish ticket"]
+    content: "Change the status or close an existing support ticket."
+    keywords: ["resolve ticket", "close case", "update status", "finish ticket", "ticket progress"]
     parameters:
       ticket_id: { type: "string" }
       status: { type: "string", enum: ["pending", "in_progress", "resolved", "closed"] }
@@ -200,8 +208,8 @@ documents:
 
   - id: "get_customer_interactions"
     title: "Get Customer Interactions"
-    content: "View a timeline of all previous communications and logs."
-    keywords: ["interaction logs", "comms history", "touchpoint timeline", "chat history"]
+    content: "View past conversations, call logs, and support interactions with the customer."
+    keywords: ["chat history", "call logs", "interaction history", "previous contact", "what did they say"]
     parameters:
       customer_id: { type: "string" }
       limit: { type: "integer", default: 10 }
@@ -213,8 +221,8 @@ documents:
 
   - id: "schedule_followup"
     title: "Schedule Follow-up"
-    content: "Set a future reminder or callback appointment."
-    keywords: ["crm followup", "callback schedule", "agent reminder", "plan call"]
+    content: "Set a reminder to follow up with the customer at a later time."
+    keywords: ["schedule call", "follow up", "reminder", "callback", "crm task", "set meeting"]
     parameters:
       customer_id: { type: "string" }
       date_time: { type: "string", format: "date-time" }
@@ -226,8 +234,8 @@ documents:
 
   - id: "get_pending_followups"
     title: "Get Pending Follow-ups"
-    content: "Query the CRM for overdue or upcoming action items."
-    keywords: ["pending tasks", "crm todo", "overdue followups"]
+    content: "List all upcoming or overdue follow-up tasks assigned to the agent."
+    keywords: ["todo list", "my tasks", "pending followups", "overdue", "reminders"]
     parameters:
       agent_id: { type: "string" }
     metadata:
@@ -238,8 +246,8 @@ documents:
 
   - id: "check_product_inventory"
     title: "Check Product Inventory"
-    content: "Verify on-hand stock levels for a specific SKU."
-    keywords: ["inventory check", "warehouse stock", "sku availability", "stock levels"]
+    content: "Check if a product is in stock or available in a specific warehouse."
+    keywords: ["check stock", "inventory", "is it available", "in stock", "how many left", "warehouse check"]
     parameters:
       product_id: { type: "string" }
       warehouse_location: { type: "string", default: "all" }
@@ -251,8 +259,8 @@ documents:
 
   - id: "recommend_product"
     title: "Recommend Product"
-    content: "Suggest complementary items based on purchase history."
-    keywords: ["marketing upsell", "product recommendation", "cross sell", "suggest items"]
+    content: "Suggest new products or items to a customer based on what they like or bought before."
+    keywords: ["recommend", "upsell", "cross-sell", "suggest", "what should they buy", "marketing"]
     parameters:
       customer_id: { type: "string" }
       category_preference: { type: "string" }

@@ -364,6 +364,42 @@ batch_results = batch_search(queries)
     <span class="hljs-keyword">for</span> temp_key, stats <span class="hljs-keyword">in</span> temps.items():
         <span class="hljs-built_in">print</span>(<span class="hljs-string">f&quot;  <span class="hljs-subst">{temp_key}</span>: <span class="hljs-subst">{stats[<span class="hljs-string">&#x27;count&#x27;</span>]}</span> docs, avg: <span class="hljs-subst">{stats[<span class="hljs-string">&#x27;avg_score&#x27;</span>]:<span class="hljs-number">.3</span>f}</span>&quot;</span>)
 </code></pre>
+<h2 id="document-structure-and-indexing">Document Structure and Indexing</h2>
+<h3 id="which-yaml-fields-are-indexed">Which YAML Fields Are Indexed</h3>
+<p>The BM25S retriever indexes specific fields from your YAML documents to enable searching:</p>
+<h4 id="indexed-fields-searchable">Indexed Fields (Searchable)</h4>
+<ul>
+<li><strong><code>title</code></strong> - Document title, fully searchable</li>
+<li><strong><code>content</code></strong> - Document content/description, fully searchable</li>
+<li><strong><code>keywords</code></strong> - Keyword list, each keyword prefixed with &quot;keyword:&quot; for search</li>
+</ul>
+<h4 id="stored-fields-not-searchable">Stored Fields (Not Searchable)</h4>
+<ul>
+<li><strong><code>id</code></strong> - Document identifier, stored for retrieval but not searched</li>
+<li><strong><code>parameters</code></strong> - Function parameters, stored in metadata only</li>
+<li><strong><code>metadata</code></strong> - All metadata fields, stored but not indexed</li>
+</ul>
+<h3 id="how-indexing-works">How Indexing Works</h3>
+<p>The system combines indexed fields into a single searchable text:</p>
+<pre><code class="language-python"><span class="hljs-comment"># For each document, the search index contains:</span>
+title + <span class="hljs-string">&quot; &quot;</span> + content + <span class="hljs-string">&quot; keyword: keyword1 keyword: keyword2 ...&quot;</span>
+</code></pre>
+<p><strong>Example:</strong></p>
+<pre><code class="language-yaml"><span class="hljs-bullet">-</span> <span class="hljs-attr">id:</span> <span class="hljs-string">&quot;create_order&quot;</span>
+  <span class="hljs-attr">title:</span> <span class="hljs-string">&quot;Create New Order&quot;</span>
+  <span class="hljs-attr">content:</span> <span class="hljs-string">&quot;Start a new purchase, buy a product, or place a customer order.&quot;</span>
+  <span class="hljs-attr">keywords:</span> [<span class="hljs-string">&quot;buy&quot;</span>, <span class="hljs-string">&quot;purchase&quot;</span>, <span class="hljs-string">&quot;place order&quot;</span>, <span class="hljs-string">&quot;checkout&quot;</span>]
+</code></pre>
+<p>This becomes searchable as:</p>
+<pre><code>&quot;Create New Order Start a new purchase, buy a product, or place a customer order. keyword: buy keyword: purchase keyword: place order keyword: checkout&quot;
+</code></pre>
+<h3 id="search-optimization-tips">Search Optimization Tips</h3>
+<ol>
+<li><strong>Title</strong>: Use descriptive, action-oriented titles that users might search for</li>
+<li><strong>Content</strong>: Include natural language descriptions with common search terms</li>
+<li><strong>Keywords</strong>: Add synonyms, abbreviations, and alternative phrasing users might type</li>
+<li><strong>Avoid</strong>: Don't put searchable content in <code>id</code>, <code>parameters</code>, or <code>metadata</code> fields</li>
+</ol>
 <h2 id="search-parameters-reference">Search Parameters Reference</h2>
 <table>
 <thead>
@@ -408,6 +444,17 @@ batch_results = batch_search(queries)
 </table>
 <h3 id="parameter-effects">Parameter Effects</h3>
 <h4 id="temperature-impact">Temperature Impact</h4>
+<p><strong>Understanding Temperature Effects</strong></p>
+<p>Temperature controls how &quot;sharp&quot; or &quot;flat&quot; the softmax distribution is:</p>
+<ul>
+<li>
+<p><strong>If you go above 1.0 (High Temp)</strong>: You are &quot;flattening&quot; the distribution. You make it harder for the top choice to win. The probabilities get closer together (everything becomes more &quot;random&quot;).</p>
+</li>
+<li>
+<p><strong>If you go below 1.0 (Low Temp)</strong>: You are &quot;sharpening&quot; the distribution. You make the top choice stand out significantly more than the others.</p>
+</li>
+</ul>
+<p><strong>Practical Temperature Ranges</strong></p>
 <ul>
 <li><strong>0.1-0.5</strong>: Very focused results, high contrast between top and lower scores</li>
 <li><strong>0.5-1.5</strong>: Balanced results, good for most use cases</li>
