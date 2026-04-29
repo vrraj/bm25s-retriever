@@ -128,13 +128,70 @@ class BM25SClient:
     def reload_index(self) -> Dict[str, Any]:
         """
         Reload the retriever instance.
-        
+
         Returns:
             Reload status
         """
         response = self.client.post(f"{self.base_url}/reload")
         response.raise_for_status()
-        
+
+        return response.json()
+
+    def add_document(self, document: DocumentModel) -> Dict[str, Any]:
+        """
+        Add a single document.
+
+        Args:
+            document: Document to add
+
+        Returns:
+            Add response
+        """
+        response = self.client.post(
+            f"{self.base_url}/documents",
+            json=document.model_dump(exclude_none=True)
+        )
+        response.raise_for_status()
+
+        return response.json()
+
+    def get_documents(self) -> Dict[str, Any]:
+        """
+        Get all documents.
+
+        Returns:
+            Documents response
+        """
+        response = self.client.get(f"{self.base_url}/documents")
+        response.raise_for_status()
+
+        return response.json()
+
+    def delete_document(self, document_id: str) -> Dict[str, Any]:
+        """
+        Delete a document by ID.
+
+        Args:
+            document_id: ID of document to delete
+
+        Returns:
+            Delete response
+        """
+        response = self.client.delete(f"{self.base_url}/documents/{document_id}")
+        response.raise_for_status()
+
+        return response.json()
+
+    def reload_documents(self) -> Dict[str, Any]:
+        """
+        Reload documents from YAML file.
+
+        Returns:
+            Reload response
+        """
+        response = self.client.post(f"{self.base_url}/documents/reload")
+        response.raise_for_status()
+
         return response.json()
     
     def close(self):
