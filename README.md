@@ -49,6 +49,83 @@ In these domains, the retrieval problem is often not broad semantic discovery. I
 - **Normalized response schema** with scores, rankings, metadata, and settings
 - **Demo Web UI** for testing retrieval behavior, tuning parameters, and refining tool descriptions
 
+## Usage Patterns
+
+### YAML-Based Static Registries
+Define tools and documents in YAML files for static, version-controlled registries. Ideal for:
+- Pre-defined tool catalogs
+- Document collections that don't change frequently
+- Version-controlled knowledge bases
+- Startup-time loading of known tool sets
+
+```yaml
+# tools.yaml
+- id: get_customer_profile
+  title: Get Customer Profile
+  content: Lookup customer account details
+  keywords: ["customer", "profile", "account"]
+```
+
+### Runtime Document/Tool Injection
+Add tools and documents dynamically at runtime. Ideal for:
+- MCP-discovered tools from external servers
+- Combining static YAML with dynamic tool discovery
+- Multi-source document aggregation
+- Real-time tool registry updates
+
+```python
+# Inject MCP-discovered tools at runtime
+mcp_tools = [
+    Document(
+        id="mcp_tool_1",
+        title="MCP Tool",
+        content="Description from MCP server",
+        keywords=["mcp", "tool"],
+        metadata={"source": "mcp"}
+    )
+]
+retriever.add_documents(mcp_tools)
+```
+
+### Remote Service-Oriented Architecture
+Run BM25S as a standalone HTTP service. Ideal for:
+- Multi-application environments sharing the same index
+- Microservices architecture
+- Remote deployments (BM25S on separate server)
+- Service-oriented integration patterns
+
+```bash
+# Start BM25S REST service
+pip install "vrraj-bm25s-retriever[server]"
+bm25s-server --config settings.yaml
+```
+
+```python
+# Connect from any application
+from bm25s_retriever import BM25SClient
+client = BM25SClient("http://remote-server:9200")
+results = client.retrieve_documents("query")
+```
+
+### MCP Tool Injection
+Combine MCP tool discovery with BM25S retrieval. Ideal for:
+- Agentic systems with MCP servers
+- Dynamic tool routing in LLM applications
+- Filtering MCP tools before LLM context assembly
+- Hybrid static + dynamic tool registries
+
+```python
+# Load static tools from YAML
+retriever = BM25SRetriever(document_file="tools.yaml")
+
+# Inject MCP-discovered tools
+mcp_tools = discover_mcp_tools()
+retriever.add_documents(mcp_tools)
+
+# Search across both sources
+results = retriever.retrieve_documents("user query")
+```
+
 ## Install
 
 ```bash
