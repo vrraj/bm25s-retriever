@@ -58,10 +58,10 @@ retriever.add_documents([
     ),
 ])
 
-results = retriever.retrieve_documents("place a limit buy order")
+results = retriever.retrieve("place a limit buy order")
 
-for doc in results["documents"]:
-    print(doc["title"], doc["softmax_score"])
+for doc in results.documents:
+    print(doc.title, doc.softmax_score)
 ```
 
 ## Links
@@ -74,9 +74,7 @@ for doc in results["documents"]:
 
 - [Full Documentation (README)](https://github.com/vrraj/bm25s-retriever#readme)
 
-- [API Reference](api-reference.md) - Complete API documentation and usage examples
-
-- [Configuration Guide](configuration.md) - Settings, environment variables, and configuration file reference
+- [API Reference](api-reference.html) - Complete API documentation and usage examples
 
 ## Interactive Demo UI
 
