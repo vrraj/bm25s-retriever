@@ -573,29 +573,6 @@ Optimization tips:
 - Use cutoff filtering to reduce noisy matches
 - Use returned metadata in the client or orchestration layer for filtering, routing, display, policy checks, or downstream decisions
 
-## Project structure
-
-```text
-bm25s-retriever/
-|-- bm25s_retriever/
-|   |-- core/
-|   |   |-- retriever.py       # BM25S retrieval logic
-|   |   |-- config.py          # Configuration management
-|   |-- api/
-|   |   |-- routes.py          # FastAPI endpoints
-|   |   |-- models.py          # Pydantic models
-|   |-- ui/
-|   |   |-- templates/         # HTML templates
-|   |   |-- static/            # CSS/JS assets
-|   |-- cli.py                # Command-line interface
-|-- scripts/                  # Sample scripts
-|-- source_files/             # Document sources
-|-- examples/                 # Usage examples
-|-- docs/                     # Documentation
-|-- settings.yaml             # Default configuration
-|-- pyproject.toml            # Package metadata
-```
-
 ## Development
 
 ```bash
