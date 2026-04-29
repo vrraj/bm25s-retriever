@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vrraj-bm25s-retriever"
-version = "1.0.0"
+version = "1.0.1"
 description = "BM25S + PyStemmer-powered lexical retrieval (with stemming) and routing layer for LLM tools, documents, and hybrid RAG"
 authors = [{name = "Raj Rajkumar"}]
 license = "MIT"
