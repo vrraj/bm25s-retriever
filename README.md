@@ -181,12 +181,12 @@ Benefits:
 Example:
 
 ```bash
-python scripts/llm_tool_routing_example.py
+python examples/llm_tool_routing_example.py
 ```
 
 See:
 
-- [scripts/llm_tool_routing_example.py](https://github.com/vrraj/bm25s-retriever/blob/main/scripts/llm_tool_routing_example.py)
+- [examples/llm_tool_routing_example.py](https://github.com/vrraj/bm25s-retriever/blob/main/examples/llm_tool_routing_example.py)
 
 ## Other use cases
 
@@ -490,7 +490,7 @@ Default: `10.0` in the sample configuration above. Tune based on your desired se
 ### YAML file usage
 
 ```bash
-python scripts/load_yaml_documents.py
+python examples/load_yaml_documents.py
 ```
 
 Covers:
@@ -503,7 +503,7 @@ Covers:
 
 ```bash
 bm25s-server --config settings.yaml
-python scripts/rest_api_examples.py
+python examples/rest_api_examples.py
 ```
 
 Covers:
@@ -599,7 +599,6 @@ pytest -m "integration or unit"
 - [Complete API Reference](https://github.com/vrraj/bm25s-retriever/blob/main/docs/api-reference.md)
 - [Configuration Guide](https://github.com/vrraj/bm25s-retriever/blob/main/docs/configuration.md)
 - [Examples](https://github.com/vrraj/bm25s-retriever/tree/main/examples)
-- [Development Notes](https://github.com/vrraj/bm25s-retriever/blob/main/docs/development.md)
 
 ## License
 
