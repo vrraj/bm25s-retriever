@@ -21,31 +21,32 @@ LLM applications often have too much context available: too many tools, too many
 
 This becomes more important in agentic systems where the LLM may have access to large tool registries. As the number of tools grows (20+), this becomes a scaling problem: context size increases, token costs rise, and tool selection becomes less reliable.
 
-> `vrraj-bm25s-retriever` gives you a small, deterministic lexical retrieval layer that can sit before an LLM and narrow the candidate set before prompt assembly.
+> `vrraj-bm25s-retriever` gives you a small, deterministic lexical **retrieval layer** that can sit before an LLM and narrow the candidate set **before prompt assembly**.
 > This package is designed for applications where many tools are available, but only a small subset is relevant for any given request.
 
 Typical flow:
 
 ```text
-User Query → BM25S Retrieval → Filtered Tools / Documents → LLM Context → Execution
+User Query / Prompt → BM25S Retrieval with stemming → Filtered Tools / Documents → LLM Context → Execution
 ```
 
-This becomes especially important in systems with large tool registries, where user intent maps to a bounded set of actions: trading, customer support, CRM, finance workflows, operations, and other tool-driven systems.
+This becomes especially important in systems with large tool registries, where user intent maps to a **bounded set of actions**: trading, customer support, CRM, finance workflows, operations, and other tool-driven systems.
 
 In these domains, the retrieval problem is often not broad semantic discovery. It is selecting the right tool, command, document, or workflow from a known set of possibilities.
 
-Clear action language matters: tool names, workflow names, order actions, support tasks, CRM operations, command phrases, and domain-specific vocabulary.
+>Clear action language matters: tool names, workflow names, order actions, support tasks, CRM operations, command phrases, and domain-specific vocabulary.
 
 ## What you get
 
-- **Python retrieval library** for programmatic lexical search
-- **REST service** for remote retrieval and document management
-- **HTTP client** for application integration
+- **Python retrieval library** for programmatic lexical search and tool routing
+- **REST service** for remote retrieval, dynamic indexing, and document/tool management
+- **HTTP client** for connecting applications to the BM25S REST service over HTTP (useful for remote deployments, service-oriented architectures, and multi-application setups)
 - **YAML-backed document/tool registry support** for LLM and MCP tool-routing workflows
+- **Runtime document/tool injection** for MCP-discovered tools and internal registries
 - **BM25S + PyStemmer** for fast stemming-aware lexical matching
 - **Normalized response schema** with scores, rankings, metadata, and settings
 - **Softmax relevance scoring** with configurable temperature and cutoff filtering
-- **Demo Web UI** for testing retrieval behavior during development
+- **Demo Web UI** for testing retrieval behavior, tuning parameters, and refining tool descriptions
 
 ## Install
 
