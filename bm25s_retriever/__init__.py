@@ -14,7 +14,7 @@ except ImportError:
     RetrieveRequest = None
     RetrieveResponse = None
 
-__version__ = "1.0.1"
+__version__ = "1.0.0"
 __all__ = [
     "BM25SRetriever",
     "retrieve_documents", 
