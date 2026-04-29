@@ -104,13 +104,12 @@ bm25s-server --config settings.yaml
 # Connect from any application
 from bm25s_retriever import BM25SClient
 client = BM25SClient("http://remote-server:9200")
-results = client.retrieve_documents("query")
+results = client.retrieve("query")
 ```
 
 ### MCP Tool Injection
 Combine MCP tool discovery with BM25S retrieval. Ideal for:
 - Agentic systems with MCP servers
-- Dynamic tool routing in LLM applications
 - Filtering MCP tools before LLM context assembly
 - Hybrid static + dynamic tool registries
 
