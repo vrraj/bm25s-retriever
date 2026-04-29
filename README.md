@@ -152,18 +152,24 @@ BM25S can retrieve the most relevant tools before the LLM sees the tool list. Th
 
 With MCP, servers can standardize **tool discovery**, but tool discovery is not the same as tool selection. The MCP client, host application, or orchestrator still decides which discovered tools should be passed to the LLM. BM25S acts as the relevance layer between discovery and prompt assembly.
 
-```text
-User Query → BM25S Tool Retrieval → Top Matching Tools → LLM Tool Selection → Tool Execution
-```
-
-With MCP:
+Mental model:
 
 ```text
-MCP Tool Discovery → Client-Side BM25S Filtering → Relevant Tools → LLM Tool Selection → Tool Execution
+Discover / Load → Inject → Index → Filter → Focused LLM Context
 ```
+
+In practice:
+
+```text
+YAML Tool Registry + MCP-Discovered Tools + Internal Tool Definitions
+→ Inject into BM25S Index (REST or in-process)
+→ Query-Time Tool Filtering
+→ Focused LLM Context
+```
+
+Tools can come from YAML, MCP discovery, or internal registries. The client or orchestration layer transforms these into BM25S documents and injects them into a unified in-memory index. At query time, BM25S filters the relevant subset before passing tools to the LLM.
 
 Hybrid registry pattern:
-
 
 ```text
 YAML Tool Registry + MCP-Discovered Tools → Dynamic BM25S Index → Query-Time Tool Filtering
