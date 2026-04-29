@@ -19,9 +19,10 @@ Use it to search documents, route LLM tool calls, filter MCP-discovered tools, a
 
 LLM applications often have too much context available: too many tools, too many documents, too many chunks, and too many near-duplicate choices.
 
-This becomes more important in agentic systems where the LLM may have access to large tool registries. Passing every tool definition, description, and parameter schema into the prompt increases token usage, adds latency, and can make tool selection less reliable.
+This becomes more important in agentic systems where the LLM may have access to large tool registries. As the number of tools grows (20+), this becomes a scaling problem: context size increases, token costs rise, and tool selection becomes less reliable.
 
-`vrraj-bm25s-retriever` gives you a small, deterministic lexical retrieval layer that can sit before an LLM and narrow the candidate set before prompt assembly.
+`vrraj-bm25s-retriever` gives you a small, deterministic lexical retrieval layer that can sit before an LLM and narrow the candidate set before prompt assembly. 
+This package is designed for applications where many tools are available, but only a small subset is relevant for any given request.
 
 Typical flow:
 
@@ -29,7 +30,7 @@ Typical flow:
 User Query → BM25S Retrieval → Filtered Tools / Documents → LLM Context → Execution
 ```
 
-This is especially useful in domains where the user intent is usually clear and the possible actions are bounded: trading, customer support, CRM, finance workflows, operations, and other tool-driven systems.
+This becomes especially important in systems with large tool registries, where user intent maps to a bounded set of actions: trading, customer support, CRM, finance workflows, operations, and other tool-driven systems.
 
 In these domains, the retrieval problem is often not broad semantic discovery. It is selecting the right tool, command, document, or workflow from a known set of possibilities.
 
@@ -144,7 +145,7 @@ python bm25s_basic_usage.py
 
 ## Primary use case: LLM and MCP tool routing
 
-In LLM-driven systems, exposing every available tool to the model can increase token usage, confuse tool selection, and weaken guardrails.
+In LLM-driven systems, exposing every available tool to the model increases token usage, creates context bloat, and makes tool selection less reliable as registries grow.
 
 This package works best when user intent maps to a bounded set of actions: quotes, market movers, order placement, customer order lookup, CRM updates, follow-up emails, escalations, and similar workflow-driven tasks.
 
@@ -188,14 +189,12 @@ Useful for domains like:
 
 Benefits:
 
-- Reduce prompt context from hundreds of tools to a small relevant set
-- Lower token usage, latency, and cost
-- Improve precision when tools have narrow, specific purposes
-- Reduce confusion across similar tools
-- Reduce exposure of unrelated tools for simple requests
+- Combine static YAML tool definitions, MCP-discovered tools, and internal tool definitions in the same BM25S retrieval index
+- Filter MCP-discovered tools on demand before passing tool definitions to the LLM
+- Reduce tool context from large registries to a small, relevant candidate set
+- Lower token usage, latency, and cost by avoiding unnecessary tool definitions in the prompt
+- Improve tool selection when tools have narrow, specific purposes
 - Return metadata with retrieved tools/documents so the client or orchestrator can apply its own scope, policy, or routing logic
-- Filter MCP-discovered tools on demand instead of dumping every available tool into the prompt
-- Combine static YAML tool definitions with dynamically discovered MCP tools in the same BM25S retrieval index
 - Keep routing deterministic and explainable
 
 Example:
