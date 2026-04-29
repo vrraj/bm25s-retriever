@@ -14,7 +14,11 @@ Positioned as a **lexical routing layer for LLM systems**, enabling efficient co
 
 Built for fast lexical retrieval using BM25S and PyStemmer, with stemming, softmax relevance scoring, configurable filtering, and a clean response schema for application integration — optimized for LLM context control, tool routing, and hybrid RAG pipelines.
 
-![BM25S Retriever LLM](images/vrraj-bm25s-retriever-llm.png)
+
+![BM25S Retriever LLM Architecture](images/vrraj-bm25s-retriever-llm.png)
+
+*Figure: BM25S Retriever LLM architecture for tool routing and context filtering*
+
 
 ## Use Cases: LLM Tool Routing and Hybrid Retrieval
 
