@@ -234,7 +234,7 @@ It also acts as an interactive tuning environment. You can load your own YAML do
 
 This helps you visualize the ranking logic and see how tools or documents are prioritized before pushing retrieval settings into production.
 
-![BM25S Retriever Web Interface](images/vrraj-bm25s-retriever-interactive-ui.png)
+![BM25S Retriever Web Interface](https://github.com/vrraj/bm25s-retriever/blob/main/images/vrraj-bm25s-retriever-interactive-ui.png)
 
 Run locally:
 
