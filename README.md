@@ -138,7 +138,7 @@ Links:
 
 - **PyPI:** https://pypi.org/project/vrraj-bm25s-retriever/
 - **GitHub:** https://github.com/vrraj/bm25s-retriever
-- **API Documentation:** https://github.com/vrraj/bm25s-retriever/blob/main/docs/api-reference.md
+- **API Documentation:** https://vrraj.github.io/bm25s-retriever/
 
 ## Quick start
 
@@ -359,7 +359,7 @@ uvicorn bm25s_retriever.main:app --reload --port 9200
 
 For complete method signatures and response details, see:
 
-- [API Reference](https://github.com/vrraj/bm25s-retriever/blob/main/docs/api-reference.md)
+- [API Reference](https://vrraj.github.io/bm25s-retriever/api-reference.html)
 
 ## Search response schema
 
@@ -678,10 +678,7 @@ pytest -m "integration or unit"
 
 ## Documentation
 
-- [Complete API Reference](https://github.com/vrraj/bm25s-retriever/blob/main/docs/api-reference.md)
-- [Configuration Guide](https://github.com/vrraj/bm25s-retriever/blob/main/docs/configuration.md)
-- [Examples](https://github.com/vrraj/bm25s-retriever/tree/main/examples)
-- [Development Notes](https://github.com/vrraj/bm25s-retriever/blob/main/docs/development.md)
+- [Complete API Reference](https://vrraj.github.io/bm25s-retriever/api-reference.html)
 
 ## License
 
