@@ -38,7 +38,7 @@ In these domains, the retrieval problem is often not broad semantic discovery. I
 
 ## What you get
 
-```markdown
+
 - **Python retrieval library** for programmatic lexical search and tool routing
 - **YAML-backed document/tool registry support** for static tool definitions and document collections
 - **Runtime document/tool injection** for MCP-discovered tools and internal registries
@@ -48,7 +48,6 @@ In these domains, the retrieval problem is often not broad semantic discovery. I
 - **Softmax relevance scoring** with configurable temperature and cutoff filtering
 - **Normalized response schema** with scores, rankings, metadata, and settings
 - **Demo Web UI** for testing retrieval behavior, tuning parameters, and refining tool descriptions
-```
 
 ## Install
 
