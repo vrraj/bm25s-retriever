@@ -5,7 +5,7 @@
 ![CI Status](https://github.com/vrraj/bm25s-retriever/actions/workflows/ci.yml/badge.svg)
 
 > **Interactive Demo UI:**  
-> This repository ships with a FastAPI-powered **Demo Web UI** for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters. See **[Demo Web UI](#demo-web-ui)** section below for details and setup instructions.
+> The GitHub repo includes a FastAPI-powered **Demo Web UI** for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters. See **[Demo Web UI](#demo-web-ui)** for setup instructions.
 
 A lightweight **BM25S-powered lexical retrieval package** for Python applications, REST services, LLM systems, and MCP-based tool workflows.
 
@@ -16,6 +16,7 @@ Use it to search documents, route LLM tool calls, filter MCP-discovered tools, a
 <center><em>Figure: BM25S Retriever architecture for tool routing and context filtering</em></center>
 
 ## Why this exists
+
 LLM applications often have too much context available: too many tools, too many documents, too many chunks, and too many near-duplicate choices.
 
 This becomes more important in agentic systems where the LLM may have access to large tool registries. Passing every tool definition, description, and parameter schema into the prompt increases token usage, adds latency, and can make tool selection less reliable.
@@ -61,6 +62,14 @@ Links:
 
 ### Option A: Use directly in Python
 
+*For Python applications (most common)*
+
+Requires only the base package (no server extras):
+
+```bash
+pip install vrraj-bm25s-retriever
+```
+
 ```python
 from bm25s_retriever import BM25SRetriever, Document
 
@@ -91,10 +100,12 @@ for doc in results["documents"]:
 
 ### Option B: Use as a REST service
 
-Install with server dependencies:
+*For shared services and web UI*
+
+Install with server dependencies (includes FastAPI, Uvicorn, Jinja2):
 
 ```bash
-pip install -e ".[server]"
+pip install "vrraj-bm25s-retriever[server]"
 ```
 
 Start the server:
@@ -124,6 +135,8 @@ print(f"Found {len(results['documents'])} matching tools/documents")
 
 ### Option C: Run the example script
 
+*For quick testing (not production)*
+
 ```bash
 curl -L -O https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/examples/bm25s_basic_usage.py
 python bm25s_basic_usage.py
@@ -151,6 +164,7 @@ MCP Tool Discovery → Client-Side BM25S Filtering → Relevant Tools → LLM To
 
 Hybrid registry pattern:
 
+
 ```text
 YAML Tool Registry + MCP-Discovered Tools → Dynamic BM25S Index → Query-Time Tool Filtering
 ```
@@ -173,7 +187,7 @@ Benefits:
 - Improve precision when tools have narrow, specific purposes
 - Reduce confusion across similar tools
 - Reduce exposure of unrelated tools for simple requests
-- Return metadata with retrieved tools/documents so the client or orchestrator can apply its own access, scope, or routing logic
+- Return metadata with retrieved tools/documents so the client or orchestrator can apply its own scope, policy, or routing logic
 - Filter MCP-discovered tools on demand instead of dumping every available tool into the prompt
 - Combine static YAML tool definitions with dynamically discovered MCP tools in the same BM25S retrieval index
 - Keep routing deterministic and explainable
@@ -380,9 +394,9 @@ BM25S_DOCUMENTS_PATH=./source_files/tools_list.yaml
 BM25S_AUTO_RELOAD=true
 
 # BM25S defaults
-BM25S_TEMPERATURE=0.7
+BM25S_TEMPERATURE=0.5
 BM25S_IGNORE_ZERO=true
-BM25S_CUTOFF=8.0
+BM25S_CUTOFF=10.0
 ```
 
 ## Document loading
@@ -417,6 +431,12 @@ After editing a YAML source file, reload the index manually:
 retriever.rebuild_index()
 ```
 
+Or create a new retriever instance:
+
+```python
+retriever = BM25SRetriever()
+```
+
 ### Dynamic tool injection
 
 You can also add tool definitions at runtime. This is useful when your application starts with a YAML registry but discovers additional tools from MCP servers or other tool providers and wants those tools to participate in lexical retrieval.
@@ -439,14 +459,7 @@ retriever.add_documents([
 ])
 ```
 
-The retrieved result will include the metadata, allowing the client or orchestrator to map the selected document back to the underlying tool provider, MCP server, or execution layer.
-
-Or create a new retriever instance:
-
-```python
-retriever = BM25SRetriever()
-```
-
+Retrieved results include metadata, allowing the client or orchestrator to map the selected document back to the underlying tool provider, MCP server, or execution layer.
 
 ## Search tuning
 
@@ -516,7 +529,7 @@ Covers:
 
 ```bash
 bm25s-server --config settings.yaml
-./scripts/curl_api_examples.sh
+./examples/curl_api_examples.sh
 ```
 
 Covers:
@@ -532,10 +545,10 @@ Add a document:
 curl -X POST http://localhost:9200/documents \
   -H "Content-Type: application/json" \
   -d '{
-    "id": "financial_report",
-    "title": "Q1 Financial Report",
-    "content": "Quarterly financial performance and revenue details.",
-    "keywords": ["finance", "quarterly", "report"]
+    "id": "get_customer_orders",
+    "title": "Get Customer Orders",
+    "content": "Retrieve open, closed, priority, delayed, or historical customer orders.",
+    "keywords": ["orders", "customer orders", "open orders", "order history"]
   }'
 ```
 
@@ -556,7 +569,7 @@ curl http://localhost:9200/documents
 Delete a document:
 
 ```bash
-curl -X DELETE http://localhost:9200/documents/financial_report
+curl -X DELETE http://localhost:9200/documents/get_customer_orders
 ```
 
 ## Performance notes
@@ -573,7 +586,7 @@ Optimization tips:
 
 - Keep `content` focused and specific
 - Add realistic `keywords` that match how users ask questions
-- Use lower temperature for precise tool routing
+- Use lower temperature for more selective tool routing
 - Use cutoff filtering to reduce noisy matches
 - Use returned metadata in the client or orchestration layer for filtering, routing, display, policy checks, or downstream decisions
 
@@ -599,6 +612,7 @@ pytest -m "integration or unit"
 - [Complete API Reference](https://github.com/vrraj/bm25s-retriever/blob/main/docs/api-reference.md)
 - [Configuration Guide](https://github.com/vrraj/bm25s-retriever/blob/main/docs/configuration.md)
 - [Examples](https://github.com/vrraj/bm25s-retriever/tree/main/examples)
+- [Development Notes](https://github.com/vrraj/bm25s-retriever/blob/main/docs/development.md)
 
 ## License
 
