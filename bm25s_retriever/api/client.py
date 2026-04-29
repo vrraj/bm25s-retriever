@@ -137,19 +137,26 @@ class BM25SClient:
 
         return response.json()
 
-    def add_document(self, document: DocumentModel) -> Dict[str, Any]:
+    def add_document(self, document: Union[DocumentModel, 'Document']) -> Dict[str, Any]:
         """
         Add a single document.
 
         Args:
-            document: Document to add
+            document: Document to add (DocumentModel or Document dataclass)
 
         Returns:
             Add response
         """
+        # Convert Document dataclass to dict if needed
+        if hasattr(document, 'model_dump'):
+            doc_data = document.model_dump(exclude_none=True)
+        else:
+            # Handle Document dataclass from core module
+            doc_data = document.copy()
+
         response = self.client.post(
             f"{self.base_url}/documents",
-            json=document.model_dump(exclude_none=True)
+            json=doc_data
         )
         response.raise_for_status()
 
