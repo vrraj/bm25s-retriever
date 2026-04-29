@@ -534,7 +534,7 @@ Covers:
 
 ```bash
 bm25s-server --config settings.yaml
-./examples/curl_api_examples.sh
+./scripts/curl_api_examples.sh
 ```
 
 Covers:
