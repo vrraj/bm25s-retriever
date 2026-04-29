@@ -1,12 +1,14 @@
 # API Reference
 
+Reference for programmatic usage, HTTP integration, and retrieval behavior tuning.
+
 This document provides the complete API reference for the BM25S Retriever, including method signatures, parameter details, response structures, and common usage patterns.
 
 > **New here?** Start with the project overview on the home page: **[vrraj-bm25s-retriever docs home](https://vrraj.github.io/bm25s-retriever/)**.
 >
 > **Source + releases:** GitHub repo and PyPI package are linked from the home page.
 
-> **Note:** The package exposes a convenience singleton `get_retriever()` which returns a global `BM25SRetriever` instance. You can either use this pre-configured instance or create your own `BM25SRetriever` instance for custom configuration.
+> **Note:** The package exposes a convenience singleton `get_retriever()` which returns a global `BM25SRetriever` instance. You can use this for quick integration or create your own `BM25SRetriever` instance for explicit configuration and isolation.
 
 ## Table of Contents
 
@@ -104,6 +106,7 @@ def retrieve_documents(
 **Returns:** `Dict[str, Any]` - Retrieval results with documents, scores, and metadata
 
 **Example:**
+
 ```python
 from bm25s_retriever import BM25SRetriever
 
@@ -122,7 +125,7 @@ results = retriever.retrieve_documents(
 
 # Access results
 for doc in results["documents"]:
-    print(f"{doc['title']}: {doc['softmax_score']:.2%}")
+    print(f"{doc['title']}: {doc['softmax_score']:.2%} (BM25: {doc['bm25_score']})")
 ```
 
 ### `add_documents()`
@@ -272,7 +275,7 @@ The response from `retrieve_documents()` follows this structure:
 | `message` | `str` | Status message |
 | `documents` | `List[Dict]` | Retrieved documents with scores |
 | `total_retrieved` | `int` | Total documents before cutoff filtering |
-| `cutoff_percentage` | `float` | Cutoff threshold used (as decimal) |
+| `cutoff_percentage` | `float` | Cutoff threshold used (percentage, e.g. 10.0) |
 | `settings` | `Dict` | Settings used for this retrieval |
 
 ### Document Structure
@@ -356,15 +359,15 @@ for doc in results["documents"]:
 ### 2. Custom Search Parameters
 
 ```python
-# More precise search
+# More selective search
 results = retriever.retrieve_documents(
     "financial analysis",
-    temperature=0.3,      # Lower temp = more focused
+    temperature=0.3,       # Lower temp = more focused
     llm_tools_cutoff=15.0, # Higher cutoff = only top results
     ignore_zero=True
 )
 
-# More exploratory search
+# Broader search
 results = retriever.retrieve_documents(
     "trading tools",
     temperature=2.0,       # Higher temp = more uniform
@@ -380,7 +383,7 @@ from bm25s_retriever import BM25SRetriever, Document
 
 retriever = BM25SRetriever()
 
-# Add MCP-discovered tools at runtime
+# Add MCP-discovered tools at runtime (dynamic tool injection)
 mcp_tools = [
     Document(
         id="mcp_get_account_summary",
@@ -449,7 +452,7 @@ results = retriever.retrieve_documents("query")
 ```python
 results = retriever.retrieve_documents("trading tools")
 
-# Filter results based on metadata in application layer
+# Use metadata in the application layer for routing or filtering
 admin_tools = [
     doc for doc in results["documents"]
     if doc["metadata"].get("access_level") == "admin"
@@ -494,6 +497,7 @@ def retrieve(
 ```
 
 **Example:**
+
 ```python
 from bm25s_retriever import BM25SClient
 
@@ -597,7 +601,7 @@ The following environment variables override settings.yaml values:
 |----------|------|-------------|
 | `BM25S_TEMPERATURE` | float | Override temperature setting |
 | `BM25S_IGNORE_ZERO` | bool | Override ignore_zero setting ("true"/"false") |
-| `BM25S_CUTOFF` | float | Override llm_tools_cutoff setting |
+| `BM25S_CUTOFF` | float | Override llm_tools_cutoff (minimum softmax percentage) |
 | `BM25S_HOST` | string | Override server host |
 | `BM25S_PORT` | int | Override server port |
 | `BM25S_LOG_LEVEL` | string | Override log level |
@@ -608,7 +612,7 @@ The following environment variables override settings.yaml values:
 bm25s:
   temperature: 0.5          # Softmax temperature (0.1-10.0)
   ignore_zero: true         # Filter zero-relevance documents
-  llm_tools_cutoff: 10.0   # Minimum softmax percentage (0-100)
+  llm_tools_cutoff: 10.0    # Minimum softmax percentage (0-100)
 
 documents:
   source: "source_files/tools_list.yaml"
