@@ -88,6 +88,12 @@ for doc in results["documents"]:
 
 ### Option B: Use as a REST service
 
+Install with server dependencies:
+
+```bash
+pip install -e ".[server]"
+```
+
 Start the server:
 
 ```bash
@@ -124,16 +130,11 @@ python bm25s_basic_usage.py
 
 In LLM-driven systems, exposing every available tool to the model can increase token usage, confuse tool selection, and weaken guardrails.
 
-This package works best when the user intent maps to a limited set of possible actions. For example, in trading, a user may want quotes, movers, option chains, watchlist updates, or order placement. In customer support, the request may map to order lookup, refund status, email follow-up, escalation, or CRM updates.
+This package works best when user intent maps to a bounded set of actions: quotes, market movers, order placement, customer order lookup, CRM updates, follow-up emails, escalations, and similar workflow-driven tasks.
 
-It can be used with traditional tool registries, agent frameworks, or Model Context Protocol (MCP) clients that need to filter discovered tools before passing them into an LLM prompt.
+BM25S can retrieve the most relevant tools before the LLM sees the tool list. This works with traditional tool registries, agent frameworks, and **Model Context Protocol (MCP)** clients.
 
-This package can retrieve only the most relevant tools for a user request before the LLM sees the tool list.
-
-
-This remains useful even when using **Model Context Protocol (MCP)**. MCP servers can expose and standardize **tool discovery**, but MCP does not automatically decide which tools are relevant for a specific user request.
-
-That decision still belongs in the MCP client, host application, agent framework, or orchestration layer. The orchestrator can use BM25S to filter discovered tools, then apply its own access, scope, or policy checks before passing a smaller tool set to the LLM. BM25S acts as the relevance layer between MCP tool discovery and LLM tool selection.
+With MCP, servers can standardize **tool discovery**, but tool discovery is not the same as tool selection. The MCP client, host application, or orchestrator still decides which discovered tools should be passed to the LLM. BM25S acts as the relevance layer between discovery and prompt assembly.
 
 ```text
 User Query → BM25S Tool Retrieval → Top Matching Tools → LLM Tool Selection → Tool Execution
@@ -230,7 +231,7 @@ It also acts as an interactive tuning environment. You can load your own YAML do
 
 This helps you visualize the ranking logic and see how tools or documents are prioritized before pushing retrieval settings into production.
 
-![BM25S Retriever Web Interface](https://github.com/vrraj/bm25s-retriever/blob/main/images/bm25s_web_interface.png)
+![BM25S Retriever Web Interface](images/vrraj-bm25s-retriever-interactive-ui.png)
 
 Run locally:
 
