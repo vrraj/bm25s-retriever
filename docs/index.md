@@ -1,11 +1,10 @@
 ---
 layout: default
-title: "BM25S Retriever: Fast Lexical Retrieval"
-description: "A lightweight BM25S-powered lexical retrieval package for Python applications, REST services, LLM systems, and MCP-based tool workflows."
+title: "BM25S Retriever: Lexical Routing for Tool-Heavy Agents"
+description: "A lightweight BM25S-powered lexical retrieval and tool-routing package for Python applications, REST services, LLM systems, and MCP-based tool workflows."
 ---
 
 # vrraj-bm25s-retriever
-
 
 <p align="left">
   <a href="https://pypi.org/project/vrraj-bm25s-retriever/">
@@ -21,19 +20,46 @@ description: "A lightweight BM25S-powered lexical retrieval package for Python a
 
 A lightweight **BM25S-powered lexical retrieval package** for Python applications, REST services, LLM systems, and MCP-based tool workflows.
 
-Use it to search documents, route LLM tool calls, filter MCP-discovered tools, and build fast lexical retrieval layers without running a vector database.
+Use it to route LLM tool calls, filter MCP-discovered tools, search documents, and build fast lexical retrieval layers without running a vector database.
 
-## Key Features
+## Why this exists
 
-- **Fast Lexical Retrieval**: BM25S with PyStemmer for efficient, deterministic text search
+Tool-heavy agentic systems can quickly run into context bloat. As tool registries grow, passing every tool definition, description, and parameter schema into the LLM increases token usage, adds latency, and can make tool selection less reliable.
 
-- **Softmax Scoring**: Configurable temperature-based scoring with cutoff filtering
+`vrraj-bm25s-retriever` acts as a small deterministic relevance layer before prompt assembly. It is designed for applications where many tools are available, but only a small subset is relevant for any given request.
 
-- **Multiple Usage Modes**: Python API, REST service, or HTTP client
+## Primary use case: LLM and MCP tool routing
 
-- **MCP Integration**: Filter MCP-discovered tools before passing to LLM
+Modern agentic systems increasingly discover tools through **Model Context Protocol (MCP)**, internal registries, and service APIs. MCP standardizes tool discovery, but it does not decide which tools should be passed to the LLM for a specific user request.
 
-- **Demo Web UI**: Interactive interface for testing and tuning retrieval parameters
+That selection step still belongs in the MCP client, host application, or orchestrator.
+
+```text
+Discover / Load → Inject → Index → Filter → Focused LLM Context
+```
+
+In practice:
+
+```text
+YAML Tool Registry + MCP-Discovered Tools + Internal Tool Definitions
+→ Inject into BM25S Index (REST or in-process)
+→ Query-Time Tool Filtering
+→ Focused LLM Context
+```
+
+Tools can come from YAML, MCP discovery, or internal registries. The client or orchestration layer maps them into BM25S documents and injects them into a unified in-memory index. At query time, BM25S filters the relevant subset before the LLM sees the tool list.
+
+## What you get
+
+- **Python retrieval library** for programmatic lexical search and tool routing
+- **YAML-backed document/tool registry support** for static tool definitions and document collections
+- **Runtime document/tool injection** for MCP-discovered tools and internal registries
+- **REST service** for remote retrieval, dynamic indexing, and document/tool management
+- **HTTP client** for connecting applications to the BM25S REST service, including remote deployments and service-oriented architectures
+- **BM25S + PyStemmer** for fast stemming-aware lexical matching
+- **Softmax relevance scoring** with configurable temperature and cutoff filtering
+- **Normalized response schema** with scores, rankings, metadata, and settings
+- **Demo Web UI** for testing retrieval behavior, tuning parameters, and refining tool descriptions
 
 ## Install
 
@@ -41,7 +67,13 @@ Use it to search documents, route LLM tool calls, filter MCP-discovered tools, a
 pip install vrraj-bm25s-retriever
 ```
 
-## Quick Example
+For the REST service extras:
+
+```bash
+pip install "vrraj-bm25s-retriever[server]"
+```
+
+## Quick example
 
 ```python
 from bm25s_retriever import BM25SRetriever, Document
@@ -56,28 +88,37 @@ retriever.add_documents([
         keywords=["place order", "buy order", "sell order", "stock trade"],
         metadata={"category": "trading", "type": "tool"},
     ),
+    Document(
+        id="get_market_movers",
+        title="Get Market Movers",
+        content="Retrieve top gaining, losing, or most active market movers.",
+        keywords=["market movers", "top gainers", "top losers", "most active"],
+        metadata={"category": "trading", "type": "tool"},
+    ),
 ])
 
-results = retriever.retrieve("place a limit buy order")
+results = retriever.retrieve_documents(
+    query="place a limit buy order",
+    temperature=0.5,
+    ignore_zero=True,
+    llm_tools_cutoff=10.0,
+)
 
-for doc in results.documents:
-    print(doc.title, doc.softmax_score)
+for doc in results["documents"]:
+    print(doc["id"], doc["title"], doc["score_percentage"])
 ```
 
-## Links
-
-- [Github Repository](https://github.com/vrraj/bm25s-retriever)
-
-- [PyPI Package](https://pypi.org/project/vrraj-bm25s-retriever/)
-
-## Detailed Documentation
-
-- [Full Documentation (README)](https://github.com/vrraj/bm25s-retriever#readme)
-
-- [API Reference](api-reference.html) - Complete API documentation and usage examples
-
-## Interactive Demo UI
+## Interactive tuning UI
 
 The GitHub repo includes a FastAPI-powered **Demo Web UI** for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters.
 
+Use it as a local experimentation environment: load your own YAML documents or tool definitions, test queries, adjust temperature and cutoff settings, refine keywords and tool descriptions, and see exactly how results are ranked before using the settings in production.
+
 See setup instructions in the README: [Demo Web UI](https://github.com/vrraj/bm25s-retriever#demo-web-ui)
+
+## Links
+
+- [GitHub Repository](https://github.com/vrraj/bm25s-retriever)
+- [PyPI Package](https://pypi.org/project/vrraj-bm25s-retriever/)
+- [Full README](https://github.com/vrraj/bm25s-retriever#readme)
+- [API Reference](api-reference.html)
