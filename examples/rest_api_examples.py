@@ -276,23 +276,6 @@ def error_handling_examples(client):
     except Exception as e:
         print(f"Expected error handled: {e}")
 
-    # Test with invalid document data
-    print("\nTesting invalid document addition...")
-    invalid_doc = Document(
-        id="",  # Empty ID
-        title="Invalid Document",
-        content="This should fail validation"
-    )
-
-    try:
-        result = client.add_document(invalid_doc)
-        if not result.get('success'):
-            print(f"✅ Invalid document properly rejected: {result.get('message')}")
-        else:
-            print("⚠️  Invalid document was accepted (unexpected)")
-    except Exception as e:
-        print(f"✅ Invalid document raised exception: {e}")
-
 
 if __name__ == "__main__":
     print("BM25S Retriever - REST API Usage Examples")
