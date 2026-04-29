@@ -2,9 +2,9 @@
 # This file controls the behavior of the BM25S document retrieval service
 
 bm25s:
-  temperature: 0.7          # Softmax temperature (0.1-10.0)
+  temperature: 0.5          # Softmax temperature (0.1-10.0)
   ignore_zero: true          # Filter zero-relevance documents
-  llm_tools_cutoff: 8.0      # Minimum softmax percentage (0-100)
+  llm_tools_cutoff: 10.0     # Minimum softmax percentage (0-100)
 
 documents:
   source: "documents.yaml"   # Document source file
