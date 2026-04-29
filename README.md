@@ -14,6 +14,8 @@ Positioned as a **lexical routing layer for LLM systems**, enabling efficient co
 
 Built for fast lexical retrieval using BM25S and PyStemmer, with stemming, softmax relevance scoring, configurable filtering, and a clean response schema for application integration — optimized for LLM context control, tool routing, and hybrid RAG pipelines.
 
+![BM25S Retriever LLM](images/vrraj-bm25s-retriever-llm.png)
+
 ## Use Cases: LLM Tool Routing and Hybrid Retrieval
 
 This package is primarily designed for **LLM-driven systems** where controlling tool/context exposure is critical.
@@ -718,12 +720,23 @@ client.add_document({
 
 ### Via YAML File
 Add to `tools_list.yaml` and reload:
+
 ```yaml
 documents:
   - id: "custom_doc"
     title: "Custom Document"
     content: "Your content here..."
     keywords: ["tag1", "tag2"]
+```
+
+**Note:** YAML files do not auto-reload. After editing the YAML file, you need to manually reload the index:
+
+```python
+# Reload from YAML
+retriever.rebuild_index()
+
+# Or create a new retriever instance
+retriever = BM25SRetriever()
 ```
 
 ## Development
