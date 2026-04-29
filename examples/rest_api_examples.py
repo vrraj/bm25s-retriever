@@ -125,7 +125,7 @@ def search_via_api(client):
             # Show search settings
             if results.settings:
                 settings = results.settings
-                print(f"     Search temp: {settings.temperature}")
+                print(f"     Search temp: {settings.get('temperature', 'N/A')}")
 
         except Exception as e:
             print(f"❌ Search error for '{query}': {e}")
