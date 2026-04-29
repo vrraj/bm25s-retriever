@@ -119,6 +119,7 @@ Combine MCP tool discovery with BM25S retrieval. Ideal for:
 retriever = BM25SRetriever(document_file="tools.yaml")
 
 # Inject MCP-discovered tools (implement discover_mcp_tools() for your MCP client)
+# Note: add_documents() expects List[Document] - see API Documentation for Document signature
 mcp_tools = discover_mcp_tools()  # TODO: Implement MCP tool discovery
 retriever.add_documents(mcp_tools)
 
