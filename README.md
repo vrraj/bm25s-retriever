@@ -21,8 +21,8 @@ LLM applications often have too much context available: too many tools, too many
 
 This becomes more important in agentic systems where the LLM may have access to large tool registries. As the number of tools grows (20+), this becomes a scaling problem: context size increases, token costs rise, and tool selection becomes less reliable.
 
-`vrraj-bm25s-retriever` gives you a small, deterministic lexical retrieval layer that can sit before an LLM and narrow the candidate set before prompt assembly. 
-This package is designed for applications where many tools are available, but only a small subset is relevant for any given request.
+> `vrraj-bm25s-retriever` gives you a small, deterministic lexical retrieval layer that can sit before an LLM and narrow the candidate set before prompt assembly.
+> This package is designed for applications where many tools are available, but only a small subset is relevant for any given request.
 
 Typical flow:
 
