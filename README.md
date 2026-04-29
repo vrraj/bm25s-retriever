@@ -14,7 +14,7 @@ Use it to search documents, route LLM tool calls, filter MCP-discovered tools, a
 
 **[Quick Start →](#install)**
 
-![BM25S Retriever LLM Architecture](images/vrraj-bm25s-retriever-llm.png)
+![BM25S Retriever LLM Architecture](https://github.com/vrraj/bm25s-retriever/blob/main/images/vrraj-bm25s-retriever-llm.png)
 
 <center><em>Figure: BM25S Retriever architecture for tool routing and context filtering</em></center>
 
