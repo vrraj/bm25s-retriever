@@ -13,13 +13,11 @@ Use it to search documents, route LLM tool calls, filter MCP-discovered tools, a
 <center><em>Figure: BM25S Retriever architecture for tool routing and context filtering</em></center>
 
 ## Why this exists
-
-
 LLM applications often have too much context available: too many tools, too many documents, too many chunks, and too many near-duplicate choices.
 
 This becomes more important in agentic systems where the LLM may have access to large tool registries. Passing every tool definition, description, and parameter schema into the prompt increases token usage, adds latency, and can make tool selection less reliable.
 
-`vrraj-bm25s-retriever` gives you a small, deterministic lexical retrieval layer that can sit before an LLM and decide what should be exposed.
+`vrraj-bm25s-retriever` gives you a small, deterministic lexical retrieval layer that can sit before an LLM and narrow the candidate set before prompt assembly.
 
 Typical flow:
 
@@ -31,7 +29,7 @@ This is especially useful in domains where the user intent is usually clear and 
 
 In these domains, the retrieval problem is often not broad semantic discovery. It is selecting the right tool, command, document, or workflow from a known set of possibilities.
 
-Exact terms matter: tool names, tickers, account types, order actions, product IDs, support workflows, commands, and domain-specific vocabulary.
+Clear action language matters: tool names, workflow names, order actions, support tasks, CRM operations, command phrases, and domain-specific vocabulary.
 
 ## What you get
 
@@ -67,18 +65,25 @@ retriever = BM25SRetriever()
 
 retriever.add_documents([
     Document(
-        id="financial_planning",
-        title="Financial Planning Guide",
-        content="Guide to personal finance, investing, and retirement planning.",
-        keywords=["finance", "planning", "investment"],
-        metadata={"category": "finance"},
-    )
+        id="create_order",
+        title="Create Order",
+        content="Place a buy or sell order for a stock or equity trade.",
+        keywords=["place order", "buy order", "sell order", "stock trade"],
+        metadata={"category": "trading", "type": "tool"},
+    ),
+    Document(
+        id="get_market_movers",
+        title="Get Market Movers",
+        content="Retrieve top gaining, losing, or most active market movers.",
+        keywords=["market movers", "top gainers", "top losers", "most active"],
+        metadata={"category": "trading", "type": "tool"},
+    ),
 ])
 
-results = retriever.retrieve_documents("investment strategies")
+results = retriever.retrieve_documents("place a limit buy order")
 
 for doc in results["documents"]:
-    print(doc["title"], doc["bm25_score"], doc["score_percentage"])
+    print(doc["id"], doc["title"], doc["score_percentage"])
 ```
 
 ### Option B: Use as a REST service
@@ -94,7 +99,7 @@ Search documents:
 ```bash
 curl -X POST http://localhost:9200/retrieve \
   -H "Content-Type: application/json" \
-  -d '{"query": "customer profile"}'
+  -d '{"query": "show open customer orders"}'
 ```
 
 Use the Python HTTP client:
@@ -103,9 +108,9 @@ Use the Python HTTP client:
 from bm25s_retriever import BM25SClient
 
 client = BM25SClient("http://localhost:9200")
-results = client.retrieve("cryptocurrency data")
+results = client.retrieve("show open customer orders")
 
-print(f"Found {len(results['documents'])} documents")
+print(f"Found {len(results['documents'])} matching tools/documents")
 ```
 
 ### Option C: Run the example script
@@ -128,7 +133,7 @@ This package can retrieve only the most relevant tools for a user request before
 
 This remains useful even when using **Model Context Protocol (MCP)**. MCP servers can expose and standardize **tool discovery**, but MCP does not automatically decide which tools are relevant for a specific user request.
 
-That decision still belongs in the MCP client, host application, agent framework, or orchestration layer. The orchestrator can filter discovered tools, enforce least-privilege access, and pass only the most relevant tool definitions to the LLM. BM25S can act as that relevance layer between MCP tool discovery and LLM tool selection.
+That decision still belongs in the MCP client, host application, agent framework, or orchestration layer. The orchestrator can use BM25S to filter discovered tools, then apply its own access, scope, or policy checks before passing a smaller tool set to the LLM. BM25S acts as the relevance layer between MCP tool discovery and LLM tool selection.
 
 ```text
 User Query → BM25S Tool Retrieval → Top Matching Tools → LLM Tool Selection → Tool Execution
@@ -146,7 +151,7 @@ Hybrid registry pattern:
 YAML Tool Registry + MCP-Discovered Tools → Dynamic BM25S Index → Query-Time Tool Filtering
 ```
 
-You can start with your own YAML-based tool registry and augment it at runtime. If an MCP server discovers additional tools, the client or orchestration layer can transform those tool definitions into BM25S documents and dynamically inject them into the retriever index. This lets static tool definitions and newly discovered MCP tools participate in the same lexical search and ranking flow.
+You can start with your own YAML-based tool registry and augment it at runtime. If an MCP server discovers additional tools, the client or orchestration layer can transform those tool definitions into BM25S documents and add them to the retriever index. This lets static tool definitions and newly discovered MCP tools participate in the same lexical search and ranking flow.
 
 Useful for domains like:
 
@@ -163,9 +168,9 @@ Benefits:
 - Lower token usage, latency, and cost
 - Improve precision when tools have narrow, specific purposes
 - Reduce confusion across similar tools
-- Avoid exposing unrelated or sensitive tools for simple requests
+- Reduce exposure of unrelated tools for simple requests
 - Return metadata with retrieved tools/documents so the client or orchestrator can apply its own access, scope, or routing logic
-- Dynamically load, filter, or expose MCP tools on demand instead of dumping every available tool into the prompt
+- Filter MCP-discovered tools on demand instead of dumping every available tool into the prompt
 - Combine static YAML tool definitions with dynamically discovered MCP tools in the same BM25S retrieval index
 - Keep routing deterministic and explainable
 
@@ -189,10 +194,10 @@ The tool catalog does not have to be static. Applications can load a YAML regist
 
 Examples:
 
-- Trading symbols and order actions
+- Trading actions and market-data tools
 - Support case workflows
+- CRM tasks and follow-up actions
 - Internal process documentation
-- Product or SKU lookup
 - Compliance or policy snippets
 
 ### Hybrid RAG
@@ -203,7 +208,7 @@ BM25S works well alongside embeddings, especially when you want lexical precisio
 - Use embeddings for semantic recall
 - Merge or rerank results before passing context to the LLM
 
-This is helpful when semantic retrieval may miss exact identifiers, abbreviations, ticker symbols, commands, or domain-specific terms.
+This is helpful when semantic retrieval may miss exact tool names, workflow names, commands, abbreviations, or domain-specific terms.
 
 Vector search is powerful for broad semantic discovery, but it can add latency and cost when embedding calls are required at runtime or when the system has to sort through many semantically similar matches. For bounded tool-selection problems, a lexical pass can be faster, cheaper, and easier to reason about.
 
@@ -218,7 +223,6 @@ For small-to-medium document sets, BM25S can be enough by itself:
 - Easy YAML-based configuration
 
 ## Demo Web UI
-
 
 The GitHub repository includes a FastAPI-powered demo UI for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters.
 
@@ -324,7 +328,7 @@ Reference fields:
 - `metadata`
 - `parameters` when present in YAML tool definitions
 
-`metadata` is returned with each document/tool result so the client or orchestration layer can decide how to use it for routing, display, filtering, access checks, or downstream logic.
+`metadata` is returned with each document/tool result so the client or orchestration layer can decide how to use it for routing, display, filtering, policy checks, or downstream logic.
 
 ## Configuration
 
@@ -411,7 +415,7 @@ retriever.rebuild_index()
 
 ### Dynamic tool injection
 
-You can also add tool definitions at runtime. This is useful when your application starts with a YAML registry but discovers additional tools from MCP servers or other tool providers.
+You can also add tool definitions at runtime. This is useful when your application starts with a YAML registry but discovers additional tools from MCP servers or other tool providers and wants those tools to participate in lexical retrieval.
 
 ```python
 from bm25s_retriever import Document
@@ -460,7 +464,7 @@ Examples:
 - `0.5 - 1.5`: Balanced retrieval
 - `1.5+`: Broader retrieval
 
-Default: `0.7`
+Default: `0.5` in the sample configuration above. Tune based on your data and use case.
 
 ### Cutoff percentage
 
@@ -468,7 +472,7 @@ Default: `0.7`
 - Lower values return more results
 - Higher values return only stronger matches
 
-Default: `8.0`
+Default: `10.0` in the sample configuration above. Tune based on your desired selectivity.
 
 ### Score interpretation
 
@@ -536,7 +540,7 @@ Search:
 ```bash
 curl -X POST http://localhost:9200/retrieve \
   -H "Content-Type: application/json" \
-  -d '{"query": "financial performance", "temperature": 0.7}'
+  -d '{"query": "show open customer orders", "temperature": 0.5}'
 ```
 
 List documents:
@@ -567,7 +571,7 @@ Optimization tips:
 - Add realistic `keywords` that match how users ask questions
 - Use lower temperature for precise tool routing
 - Use cutoff filtering to reduce noisy matches
-- Use returned metadata in the client or orchestration layer for filtering, routing, display, or access-related decisions
+- Use returned metadata in the client or orchestration layer for filtering, routing, display, policy checks, or downstream decisions
 
 ## Project structure
 
