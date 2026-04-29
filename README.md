@@ -117,9 +117,8 @@ Combine MCP tool discovery with BM25S retrieval. Ideal for:
 # Load static tools from YAML
 retriever = BM25SRetriever(document_file="tools.yaml")
 
-# Inject MCP-discovered tools (implement discover_mcp_tools() for your MCP client)
-# Note: add_documents() expects List[Document] - see API Documentation for Document signature
-mcp_tools = discover_mcp_tools()  # TODO: Implement MCP tool discovery
+# Inject MCP-discovered tools (your MCP client maps discovered tools to Document objects)
+mcp_tools = discover_mcp_tools()  # Your MCP client maps discovered tools to Document objects
 retriever.add_documents(mcp_tools)
 
 # Search across both sources
