@@ -3,7 +3,7 @@ HTTP client for BM25S retriever API.
 """
 
 import httpx
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 from .models import (
     Document as DocumentModel,
     RetrieveRequest,
@@ -12,6 +12,9 @@ from .models import (
     IndexResponse,
     SettingsResponse
 )
+
+# Import Document from core for type checking
+from ..core.retriever import Document as CoreDocument
 
 
 class BM25SClient:
@@ -137,7 +140,7 @@ class BM25SClient:
 
         return response.json()
 
-    def add_document(self, document: Union[DocumentModel, 'Document']) -> Dict[str, Any]:
+    def add_document(self, document: Union[DocumentModel, CoreDocument]) -> Dict[str, Any]:
         """
         Add a single document.
 
