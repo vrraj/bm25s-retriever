@@ -409,10 +409,6 @@ def create_app(config: Config = None) -> FastAPI:
     @app.exception_handler(Exception)
     async def global_exception_handler(request: Request, exc: Exception):
         """Global exception handler."""
-        return ErrorResponse(
-            error=type(exc).__name__,
-            message=str(exc),
-            details={"path": str(request.url)}
-        )
+        raise HTTPException(status_code=500, detail=f"{type(exc).__name__}: {str(exc)}")
     
     return app
