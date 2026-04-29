@@ -59,7 +59,7 @@ Links:
 
 - **PyPI:** https://pypi.org/project/vrraj-bm25s-retriever/
 - **GitHub:** https://github.com/vrraj/bm25s-retriever
-- **Documentation:** https://vrraj.github.io/bm25s-retriever/
+- **API Documentation:** https://vrraj.github.io/bm25s-retriever/
 
 ## Quick start
 
