@@ -97,15 +97,15 @@ retriever.add_documents([
     ),
 ])
 
-results = retriever.retrieve_documents(
+results = retriever.retrieve(
     query="place a limit buy order",
     temperature=0.5,
     ignore_zero=True,
     llm_tools_cutoff=10.0,
 )
 
-for doc in results["documents"]:
-    print(doc["id"], doc["title"], doc["score_percentage"])
+for doc in results.documents:
+    print(doc.id, doc.title, doc.score_percentage)
 ```
 
 ## Interactive tuning UI
