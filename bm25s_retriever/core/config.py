@@ -11,9 +11,9 @@ from dataclasses import dataclass, field
 @dataclass
 class BM25SSettings:
     """BM25S retrieval settings."""
-    temperature: float = 0.7
+    temperature: float = 0.5
     ignore_zero: bool = True
-    llm_tools_cutoff: float = 8.0
+    llm_tools_cutoff: float = 12.0
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -27,9 +27,9 @@ class BM25SSettings:
     def from_dict(cls, data: Dict[str, Any]) -> "BM25SSettings":
         """Create from dictionary."""
         return cls(
-            temperature=data.get("temperature", 0.7),
+            temperature=data.get("temperature", 0.5),
             ignore_zero=data.get("ignore_zero", True),
-            llm_tools_cutoff=data.get("llm_tools_cutoff", 8.0),
+            llm_tools_cutoff=data.get("llm_tools_cutoff", 12.0),
         )
 
 
