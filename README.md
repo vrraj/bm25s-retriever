@@ -38,15 +38,17 @@ In these domains, the retrieval problem is often not broad semantic discovery. I
 
 ## What you get
 
+```markdown
 - **Python retrieval library** for programmatic lexical search and tool routing
-- **REST service** for remote retrieval, dynamic indexing, and document/tool management
-- **HTTP client** for connecting applications to the BM25S REST service over HTTP (useful for remote deployments, service-oriented architectures, and multi-application setups)
-- **YAML-backed document/tool registry support** for LLM and MCP tool-routing workflows
+- **YAML-backed document/tool registry support** for static tool definitions and document collections
 - **Runtime document/tool injection** for MCP-discovered tools and internal registries
+- **REST service** for remote retrieval, dynamic indexing, and document/tool management
+- **HTTP client** for connecting applications to the BM25S REST service (supports remote deployments and service-oriented architectures)
 - **BM25S + PyStemmer** for fast stemming-aware lexical matching
-- **Normalized response schema** with scores, rankings, metadata, and settings
 - **Softmax relevance scoring** with configurable temperature and cutoff filtering
+- **Normalized response schema** with scores, rankings, metadata, and settings
 - **Demo Web UI** for testing retrieval behavior, tuning parameters, and refining tool descriptions
+```
 
 ## Install
 
