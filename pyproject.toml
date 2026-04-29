@@ -26,29 +26,29 @@ classifiers = [
 keywords = ["bm25", "bm25s", "retrieval", "lexical-search", "llm", "rag", "tool-routing", "hybrid-rag", "pystemmer", "fastapi"]
 
 dependencies = [
-    "bm25s>=0.3.2.post1",
-    "PyStemmer>=3.0.0",
-    "PyYAML>=6.0.3",
-    "pydantic>=2.11.0",
-    "httpx>=0.28.1",
+    "bm25s>=0.3.2.post1,<0.4.0",
+    "PyStemmer>=3.0.0,<4.0.0",
+    "PyYAML>=6.0.3,<7.0.0",
+    "pydantic>=2.11.0,<3.0.0",
+    "httpx>=0.28.1,<0.29.0",
 ]
 
 [project.optional-dependencies]
 server = [
-    "fastapi>=0.104.1",
-    "uvicorn>=0.24.0",
-    "jinja2>=3.1.4",
-    "python-multipart>=0.0.9",
+    "fastapi>=0.104.1,<0.105.0",
+    "uvicorn>=0.24.0,<0.25.0",
+    "jinja2>=3.1.4,<3.2.0",
+    "python-multipart>=0.0.9,<0.1.0",
 ]
 dev = [
-    "pytest>=8.3.3",
-    "pytest-asyncio>=0.24.0",
-    "black>=24.10.0",
-    "ruff>=0.8.4",
-    "fastapi>=0.104.1",
-    "uvicorn>=0.24.0",
-    "jinja2>=3.1.4",
-    "python-multipart>=0.0.9",
+    "pytest>=8.3.3,<9.0.0",
+    "pytest-asyncio>=0.24.0,<0.25.0",
+    "black>=24.10.0,<25.0.0",
+    "ruff>=0.8.4,<0.9.0",
+    "fastapi>=0.104.1,<0.105.0",
+    "uvicorn>=0.24.0,<0.25.0",
+    "jinja2>=3.1.4,<3.2.0",
+    "python-multipart>=0.0.9,<0.1.0",
 ]
 
 [project.urls]
