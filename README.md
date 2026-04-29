@@ -4,6 +4,8 @@
 [![GitHub Release](https://img.shields.io/github/v-release/vrraj/bm25s-retriever?label=github%20release&color=orange&logo=github)](https://github.com/vrraj/bm25s-retriever/releases)
 ![CI Status](https://github.com/vrraj/bm25s-retriever/actions/workflows/ci.yml/badge.svg)
 
+**[⚡ Quick Start →](#install)**
+
 > **Interactive Demo UI:**  
 > The GitHub repo includes a FastAPI-powered **Demo Web UI** for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters. See **[Demo Web UI](#demo-web-ui)** for setup instructions.
 
@@ -223,15 +225,11 @@ python bm25s_basic_usage.py
 
 ## Primary use case: LLM and MCP tool routing
 
-In LLM-driven systems, exposing every available tool to the model increases token usage, creates context bloat, and makes tool selection less reliable as registries grow.
+Modern agentic systems increasingly discover tools through **Model Context Protocol (MCP)**, internal registries, and service APIs. MCP standardizes tool discovery, but it does not decide which tools should be passed to the LLM for a specific user request.
 
-This package works best when user intent maps to a bounded set of actions: quotes, market movers, order placement, customer order lookup, CRM updates, follow-up emails, escalations, and similar workflow-driven tasks.
+That selection step still belongs in the MCP client, host application, or orchestrator.
 
-BM25S can retrieve the most relevant tools before the LLM sees the tool list. This works with traditional tool registries, agent frameworks, and **Model Context Protocol (MCP)** clients.
-
-With MCP, servers can standardize **tool discovery**, but tool discovery is not the same as tool selection. The MCP client, host application, or orchestrator still decides which discovered tools should be passed to the LLM. BM25S acts as the relevance layer between discovery and prompt assembly.
-
-Mental model:
+`vrraj-bm25s-retriever` acts as a lightweight relevance layer between tool discovery and prompt assembly. It is useful when user intent maps to a bounded set of actions: quotes, market movers, order placement, customer order lookup, CRM updates, follow-up emails, escalations, and similar workflow-driven tasks.
 
 ```text
 Discover / Load → Inject → Index → Filter → Focused LLM Context
@@ -246,29 +244,12 @@ YAML Tool Registry + MCP-Discovered Tools + Internal Tool Definitions
 → Focused LLM Context
 ```
 
-Tools can come from YAML, MCP discovery, or internal registries. The client or orchestration layer transforms these into BM25S documents and injects them into a unified in-memory index. At query time, BM25S filters the relevant subset before passing tools to the LLM.
-
-Hybrid registry pattern:
-
-```text
-YAML Tool Registry + MCP-Discovered Tools → Dynamic BM25S Index → Query-Time Tool Filtering
-```
-
-You can start with your own YAML-based tool registry and augment it at runtime. If an MCP server discovers additional tools, the client or orchestration layer can transform those tool definitions into BM25S documents and add them to the retriever index. This lets static tool definitions and newly discovered MCP tools participate in the same lexical search and ranking flow.
-
-Useful for domains like:
-
-- Trading and market data tools
-- Customer support workflows
-- CRM and sales operations
-- Finance and account workflows
-- Internal enterprise tools and MCP server tool catalogs
-- Hybrid RAG pipelines
+Tools can come from YAML, MCP discovery, or internal registries. The client or orchestration layer maps them into BM25S documents and injects them into a unified in-memory index. At query time, BM25S filters the relevant subset before the LLM sees the tool list.
 
 Benefits:
 
-- Combine static YAML tool definitions, MCP-discovered tools, and internal tool definitions in the same BM25S retrieval index
 - Filter MCP-discovered tools on demand before passing tool definitions to the LLM
+- Combine static YAML tool definitions, MCP-discovered tools, and internal tool definitions in the same BM25S retrieval index
 - Reduce tool context from large registries to a small, relevant candidate set
 - Lower token usage, latency, and cost by avoiding unnecessary tool definitions in the prompt
 - Improve tool selection when tools have narrow, specific purposes
