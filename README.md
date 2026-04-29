@@ -174,7 +174,7 @@ retriever.add_documents([
     ),
 ])
 
-results = retriever.retrieve_documents("place a limit buy order")
+results = retriever.retrieve("place a limit buy order")
 
 for doc in results["documents"]:
     print(doc["id"], doc["title"], doc["score_percentage"])
@@ -320,6 +320,8 @@ Run locally:
 ```bash
 git clone https://github.com/vrraj/bm25s-retriever.git
 cd bm25s-retriever
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e ".[dev]"
 bm25s-server --config settings.yaml
 ```
@@ -660,6 +662,8 @@ Optimization tips:
 ```bash
 git clone https://github.com/vrraj/bm25s-retriever.git
 cd bm25s-retriever
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e ".[dev]"
 bm25s-server --config settings.yaml
 ```
