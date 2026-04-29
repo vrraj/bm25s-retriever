@@ -57,7 +57,14 @@ def create_app(config: Config = None) -> FastAPI:
     @app.get("/", response_class=HTMLResponse)
     async def root(request: Request):
         """Serve the main UI."""
-        return templates.TemplateResponse("tool-router.html", {"request": request})
+        try:
+            return templates.TemplateResponse("tool-router.html", {"request": request})
+        except Exception as e:
+            # Log the full error for debugging
+            import traceback
+            print(f"Template rendering error: {e}")
+            print(traceback.format_exc())
+            raise HTTPException(status_code=500, detail=f"Template rendering error: {str(e)}")
     
     @app.post("/retrieve", response_model=RetrieveResponse)
     async def retrieve_documents(request: RetrieveRequest):
