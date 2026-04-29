@@ -42,56 +42,56 @@ def check_server_connection(client):
 def add_documents_via_api(client):
     """Example of adding documents via REST API."""
     print("\n=== Adding Documents via API ===")
-    
+
     # Sample documents to add
     documents = [
-        {
-            "id": "api_search_products",
-            "title": "Search Products API",
-            "content": "REST API endpoint for searching products by name, category, or filters",
-            "keywords": ["search", "products", "api", "filter", "catalog"],
-            "metadata": {
+        Document(
+            id="api_search_products",
+            title="Search Products API",
+            content="REST API endpoint for searching products by name, category, or filters",
+            keywords=["search", "products", "api", "filter", "catalog"],
+            metadata={
                 "endpoint": "/products/search",
                 "method": "GET",
                 "category": "api"
             }
-        },
-        {
-            "id": "api_create_order",
-            "title": "Create Order API",
-            "content": "REST endpoint for creating new customer orders with validation and inventory checks",
-            "keywords": ["create", "order", "api", "purchase", "checkout"],
-            "metadata": {
+        ),
+        Document(
+            id="api_create_order",
+            title="Create Order API",
+            content="REST endpoint for creating new customer orders with validation and inventory checks",
+            keywords=["create", "order", "api", "purchase", "checkout"],
+            metadata={
                 "endpoint": "/orders",
                 "method": "POST",
                 "category": "api"
             }
-        },
-        {
-            "id": "api_user_auth",
-            "title": "User Authentication API",
-            "content": "Handle user login, logout, and token management for secure access",
-            "keywords": ["auth", "login", "token", "security", "session"],
-            "metadata": {
+        ),
+        Document(
+            id="api_user_auth",
+            title="User Authentication API",
+            content="Handle user login, logout, and token management for secure access",
+            keywords=["auth", "login", "token", "security", "session"],
+            metadata={
                 "endpoint": "/auth",
                 "method": "POST",
                 "category": "security"
             }
-        }
+        )
     ]
-    
+
     added_count = 0
     for doc in documents:
         try:
             result = client.add_document(doc)
             if result.get('success'):
-                print(f"✅ Added: {doc['title']}")
+                print(f"✅ Added: {doc.title}")
                 added_count += 1
             else:
-                print(f"❌ Failed to add: {doc['title']} - {result.get('message', 'Unknown error')}")
+                print(f"❌ Failed to add: {doc.title} - {result.get('message', 'Unknown error')}")
         except Exception as e:
-            print(f"❌ Error adding {doc['title']}: {e}")
-    
+            print(f"❌ Error adding {doc.title}: {e}")
+
     print(f"\nSuccessfully added {added_count}/{len(documents)} documents")
     return added_count
 
@@ -99,34 +99,34 @@ def add_documents_via_api(client):
 def search_via_api(client):
     """Example of searching documents via REST API."""
     print("\n=== Searching via API ===")
-    
+
     search_queries = [
         "product search",
-        "order creation", 
+        "order creation",
         "user authentication",
         "api endpoints",
         "security tokens"
     ]
-    
+
     for query in search_queries:
         try:
             # Basic search
             results = client.retrieve(query)
-            
+
             print(f"\nQuery: '{query}'")
-            print(f"Found {len(results['documents'])} results")
-            
+            print(f"Found {len(results.documents)} results")
+
             # Show top results
-            for i, doc in enumerate(results['documents'][:3]):
-                print(f"  {i+1}. {doc['title']}")
-                print(f"     Score: {doc['bm25_score']:.2f}")
-                print(f"     ID: {doc['id']}")
-            
+            for i, doc in enumerate(results.documents[:3]):
+                print(f"  {i+1}. {doc.title}")
+                print(f"     Score: {doc.bm25_score:.2f}")
+                print(f"     ID: {doc.id}")
+
             # Show search settings
-            if 'settings' in results:
-                settings = results['settings']
-                print(f"     Search temp: {settings.get('temperature', 'N/A')}")
-                
+            if results.settings:
+                settings = results.settings
+                print(f"     Search temp: {settings.temperature}")
+
         except Exception as e:
             print(f"❌ Search error for '{query}': {e}")
 
@@ -134,32 +134,32 @@ def search_via_api(client):
 def advanced_search_examples(client):
     """Examples of advanced search with different parameters."""
     print("\n=== Advanced Search Examples ===")
-    
+
     query = "user authentication"
-    
+
     # Search with different temperatures
     temperatures = [0.3, 0.7, 1.5]
-    
+
     print(f"\nComparing temperatures for query: '{query}'")
     for temp in temperatures:
         try:
             results = client.retrieve(query, temperature=temp)
-            print(f"Temperature {temp}: {len(results['documents'])} results")
-            
-            if results['documents']:
-                top_doc = results['documents'][0]
-                print(f"  Top: {top_doc['title']} (Score: {top_doc['bm25_score']:.2f})")
-                
+            print(f"Temperature {temp}: {len(results.documents)} results")
+
+            if results.documents:
+                top_doc = results.documents[0]
+                print(f"  Top: {top_doc.title} (Score: {top_doc.bm25_score:.2f})")
+
         except Exception as e:
             print(f"❌ Error with temperature {temp}: {e}")
-    
+
     # Search with filtering
     print(f"\nSearch with zero-relevance filtering:")
     try:
         results = client.retrieve(query, ignore_zero=True, llm_tools_cutoff=10.0)
-        print(f"Filtered results: {len(results['documents'])} documents")
-        print(f"Cutoff percentage: {results.get('cutoff_percentage', 'N/A')}%")
-        
+        print(f"Filtered results: {len(results.documents)} documents")
+        print(f"Cutoff percentage: {results.cutoff_percentage}%")
+
     except Exception as e:
         print(f"❌ Error with filtered search: {e}")
 
@@ -167,48 +167,49 @@ def advanced_search_examples(client):
 def document_management_via_api(client):
     """Example of document management operations."""
     print("\n=== Document Management via API ===")
-    
+
     try:
         # Get all documents
         all_docs = client.get_documents()
         print(f"Total documents in system: {all_docs.get('count', 0)}")
-        
+
         # Show sample documents
         if 'documents' in all_docs and all_docs['documents']:
             print("\nSample documents:")
             for i, doc in enumerate(all_docs['documents'][:5]):
                 print(f"  {i+1}. {doc['title']} (ID: {doc['id']})")
-        
+
         # Update a document
         doc_to_update = "api_search_products"
-        updated_doc = {
-            "title": "Search Products API (Updated)",
-            "content": "Enhanced REST API endpoint for advanced product search with filtering and pagination",
-            "keywords": ["search", "products", "api", "filter", "pagination", "enhanced"],
-            "metadata": {
+        updated_doc = Document(
+            id=doc_to_update,
+            title="Search Products API (Updated)",
+            content="Enhanced REST API endpoint for advanced product search with filtering and pagination",
+            keywords=["search", "products", "api", "filter", "pagination", "enhanced"],
+            metadata={
                 "endpoint": "/products/search",
-                "method": "GET", 
+                "method": "GET",
                 "category": "api",
                 "version": "2.0"
             }
-        }
-        
+        )
+
         print(f"\nUpdating document: {doc_to_update}")
         result = client.add_document(updated_doc)  # add_document works as update if ID exists
-        
+
         if result.get('success'):
             print("✅ Document updated successfully")
         else:
             print(f"❌ Update failed: {result.get('message', 'Unknown error')}")
-        
+
         # Verify update
         updated_results = client.retrieve("product search")
-        if updated_results['documents']:
-            for doc in updated_results['documents']:
-                if doc['id'] == doc_to_update:
-                    print(f"Verified: {doc['title']}")
+        if updated_results.documents:
+            for doc in updated_results.documents:
+                if doc.id == doc_to_update:
+                    print(f"Verified: {doc.title}")
                     break
-        
+
     except Exception as e:
         print(f"❌ Document management error: {e}")
 
@@ -216,26 +217,26 @@ def document_management_via_api(client):
 def batch_operations_example(client):
     """Example of batch document operations."""
     print("\n=== Batch Operations Example ===")
-    
+
     # Prepare batch of documents
     batch_docs = []
     categories = ["payment", "shipping", "inventory", "analytics"]
-    
+
     for category in categories:
-        doc = {
-            "id": f"api_{category}_endpoint",
-            "title": f"{category.title()} Management API",
-            "content": f"REST API endpoints for managing {category} operations and data",
-            "keywords": [category, "api", "management", "operations"],
-            "metadata": {
+        doc = Document(
+            id=f"api_{category}_endpoint",
+            title=f"{category.title()} Management API",
+            content=f"REST API endpoints for managing {category} operations and data",
+            keywords=[category, "api", "management", "operations"],
+            metadata={
                 "category": "api",
                 "domain": category
             }
-        }
+        )
         batch_docs.append(doc)
-    
+
     print(f"Adding {len(batch_docs)} documents in batch...")
-    
+
     # Add documents one by one (simulating batch)
     success_count = 0
     for doc in batch_docs:
@@ -243,22 +244,22 @@ def batch_operations_example(client):
             result = client.add_document(doc)
             if result.get('success'):
                 success_count += 1
-                print(f"✅ Added: {doc['title']}")
+                print(f"✅ Added: {doc.title}")
             else:
-                print(f"❌ Failed: {doc['title']}")
+                print(f"❌ Failed: {doc.title}")
         except Exception as e:
             print(f"❌ Error: {e}")
-    
+
     print(f"\nBatch operation completed: {success_count}/{len(batch_docs)} successful")
-    
+
     # Search across batch-added documents
     try:
         results = client.retrieve("api management")
-        print(f"\nSearch across batch documents: {len(results['documents'])} results")
-        
-        for doc in results['documents'][:3]:
-            print(f"  - {doc['title']} ({doc['metadata'].get('domain', 'N/A')})")
-            
+        print(f"\nSearch across batch documents: {len(results.documents)} results")
+
+        for doc in results.documents[:3]:
+            print(f"  - {doc.title} ({doc.metadata.get('domain', 'N/A')})")
+
     except Exception as e:
         print(f"❌ Batch search error: {e}")
 
@@ -266,23 +267,23 @@ def batch_operations_example(client):
 def error_handling_examples(client):
     """Examples of handling various error scenarios."""
     print("\n=== Error Handling Examples ===")
-    
+
     # Test with non-existent document
     print("Testing non-existent document retrieval...")
     try:
         result = client.retrieve("nonexistent_document_xyz")
-        print(f"Search completed: {len(result['documents'])} results (expected: 0)")
+        print(f"Search completed: {len(result.documents)} results (expected: 0)")
     except Exception as e:
         print(f"Expected error handled: {e}")
-    
+
     # Test with invalid document data
     print("\nTesting invalid document addition...")
-    invalid_doc = {
-        "id": "",  # Empty ID
-        "title": "Invalid Document",
-        "content": "This should fail validation"
-    }
-    
+    invalid_doc = Document(
+        id="",  # Empty ID
+        title="Invalid Document",
+        content="This should fail validation"
+    )
+
     try:
         result = client.add_document(invalid_doc)
         if not result.get('success'):
