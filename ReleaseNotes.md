@@ -1,5 +1,13 @@
 # Release Notes
 
+## Version 1.0.2 — Badge Fix
+
+### Changes
+- Fixed GitHub Release badge URL to use `/v/release` instead of `v-release`
+- No functional changes - badge display fix only
+
+---
+
 ## Version 1.0.0 — Initial Public Release
 
 ### Overview
