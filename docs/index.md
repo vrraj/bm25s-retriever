@@ -157,4 +157,5 @@ See setup instructions in the README: [Demo Web UI](https://github.com/vrraj/bm2
 - [PyPI Package](https://pypi.org/project/vrraj-bm25s-retriever/)
 - [Full README](https://github.com/vrraj/bm25s-retriever#readme)
 - [API Reference](api-reference.html)
+- [Document and Tool Ingestion Guide](document-and-tool-ingestion-guide.html)
 - [Medium Story](https://medium.com/@vr.rajkumar99/context-engineering-for-tool-heavy-agents-lexical-routing-c1b0ebad7495)
