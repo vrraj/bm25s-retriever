@@ -53,6 +53,13 @@ YAML Tool Registry + MCP-Discovered Tools + Internal Tool Definitions
 
 ## Flexible ingestion architecture
 
+**Architecture overview:**
+
+
+![BM25S Retriever LLM Architecture](https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/images/vrraj-bm25s-retriever-llm.png)
+
+<center><em>BM25S-based lexical routing layer showing ingestion from YAML, MCP, and REST sources, followed by query-time filtering before LLM context assembly.</em></center>
+
 The retriever is not limited to one source of truth. A single BM25S index can consolidate:
 
 - Your own YAML-based tool or document registry
@@ -135,4 +142,4 @@ See setup instructions in the README: [Demo Web UI](https://github.com/vrraj/bm2
 - [PyPI Package](https://pypi.org/project/vrraj-bm25s-retriever/)
 - [Full README](https://github.com/vrraj/bm25s-retriever#readme)
 - [API Reference](api-reference.html)
-- [Published on Medium](https://medium.com/@vr.rajkumar99/context-engineering-for-tool-heavy-agents-lexical-routing-c1b0ebad7495)
+- [Medium Story](https://medium.com/@vr.rajkumar99/context-engineering-for-tool-heavy-agents-lexical-routing-c1b0ebad7495)
