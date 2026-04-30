@@ -679,6 +679,10 @@ pytest -m "integration or unit"
 ## Documentation
 
 - [Complete API Reference](https://vrraj.github.io/bm25s-retriever/api-reference.html)
+- [Document and Tool Ingestion Guide](https://vrraj.github.io/bm25s-retriever/document-and-tool-ingestion-guide.html)
+- [GitHub Repository](https://github.com/vrraj/bm25s-retriever)
+- [PyPI Package](https://pypi.org/project/vrraj-bm25s-retriever/)
+- [Medium Story](https://medium.com/@vr.rajkumar99/context-engineering-for-tool-heavy-agents-lexical-routing-c1b0ebad7495)
 
 ## License
 
