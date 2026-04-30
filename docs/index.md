@@ -22,6 +22,8 @@ A lightweight **BM25S-powered lexical retrieval package** for Python application
 
 Use it to route LLM tool calls, filter MCP-discovered tools, search documents, and build fast lexical retrieval layers without running a vector database.
 
+The ingestion model is intentionally flexible: combine your own YAML tool registry, MCP-discovered tools, and documents or tool definitions injected through the REST API into one in-memory BM25S index. The retriever can then be tuned to return the most relevant tool or tool set before anything is passed to the LLM.
+
 ## Why this exists
 
 Tool-heavy agentic systems can quickly run into context bloat. As tool registries grow, passing every tool definition, description, and parameter schema into the LLM increases token usage, adds latency, and can make tool selection less reliable.
@@ -49,12 +51,23 @@ YAML Tool Registry + MCP-Discovered Tools + Internal Tool Definitions
 
 Tools can come from YAML, MCP discovery, or internal registries. The client or orchestration layer maps them into BM25S documents and injects them into a unified in-memory index. At query time, BM25S filters the relevant subset before the LLM sees the tool list.
 
+## Flexible ingestion architecture
+
+The retriever is not limited to one source of truth. A single BM25S index can consolidate:
+
+- Your own YAML-based tool or document registry
+- MCP-discovered tools mapped by the client or orchestrator
+- Internal tool definitions from application code or service registries
+- Documents or tool definitions injected dynamically through the REST API
+
+This allows static definitions and runtime-discovered tools to participate in the same lexical ranking flow. You can tune temperature, cutoff thresholds, keywords, and tool descriptions to control whether the router returns one highly specific tool or a small candidate set for the LLM.
+
 ## What you get
 
 - **Python retrieval library** for programmatic lexical search and tool routing
 - **YAML-backed document/tool registry support** for static tool definitions and document collections
-- **Runtime document/tool injection** for MCP-discovered tools and internal registries
-- **REST service** for remote retrieval, dynamic indexing, and document/tool management
+- **Runtime document/tool injection** for MCP-discovered tools, internal registries, and API-supplied context
+- **REST service** for remote retrieval, dynamic in-memory indexing, and document/tool management
 - **HTTP client** for connecting applications to the BM25S REST service, including remote deployments and service-oriented architectures
 - **BM25S + PyStemmer** for fast stemming-aware lexical matching
 - **Softmax relevance scoring** with configurable temperature and cutoff filtering
@@ -112,7 +125,7 @@ for doc in results.documents:
 
 The GitHub repo includes a FastAPI-powered **Demo Web UI** for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters.
 
-Use it as a local experimentation environment: load your own YAML documents or tool definitions, test queries, adjust temperature and cutoff settings, refine keywords and tool descriptions, and see exactly how results are ranked before using the settings in production.
+Use it as a local experimentation environment: load your own YAML documents or tool definitions, inject additional documents or tools through the API, test queries, adjust temperature and cutoff settings, refine keywords and tool descriptions, and see exactly how results are ranked before using the settings in production.
 
 See setup instructions in the README: [Demo Web UI](https://github.com/vrraj/bm25s-retriever#demo-web-ui)
 
