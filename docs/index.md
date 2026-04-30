@@ -49,7 +49,7 @@ YAML Tool Registry + MCP-Discovered Tools + Internal Tool Definitions
 → Focused LLM Context
 ```
 
-Tools can come from YAML, MCP discovery, or internal registries. The client or orchestration layer maps them into BM25S documents and injects them into a unified in-memory index. At query time, BM25S filters the relevant subset before the LLM sees the tool list.
+> Tools can come from YAML, MCP discovery, or internal registries. The client or orchestration layer maps them into BM25S documents and injects them into a unified in-memory index. At query time, BM25S filters the relevant subset before the LLM sees the tool list.
 
 ## Flexible ingestion architecture
 
@@ -110,15 +110,15 @@ retriever.add_documents([
     ),
 ])
 
-results = retriever.retrieve(
+results = retriever.retrieve_documents(
     query="place a limit buy order",
     temperature=0.5,
     ignore_zero=True,
     llm_tools_cutoff=10.0,
 )
 
-for doc in results.documents:
-    print(doc.id, doc.title, doc.score_percentage)
+for doc in results["documents"]:
+    print(doc["id"], doc["title"], doc["score_percentage"])
 ```
 
 ## Interactive tuning UI

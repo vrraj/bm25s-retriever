@@ -174,7 +174,7 @@ retriever.add_documents([
     ),
 ])
 
-results = retriever.retrieve("place a limit buy order")
+results = retriever.retrieve_documents("place a limit buy order")
 
 for doc in results["documents"]:
     print(doc["id"], doc["title"], doc["score_percentage"])
