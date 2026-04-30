@@ -33,6 +33,10 @@ defaults:
 theme: jekyll-theme-cayman
 show_downloads: true
 
+# --- Google Analytics (GA4) ---
+
+google_analytics: G-KBYFPBJ1MG
+
 # --- Plugins ---
 plugins:
   - jekyll-seo-tag

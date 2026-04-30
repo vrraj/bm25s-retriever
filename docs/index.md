@@ -1,6 +1,6 @@
 ---
 layout: default
-title: "BM25S Retriever: Lexical Routing for Tool-Heavy Agents"
+title: "Context Engineering for Tool-Heavy Agents: Lexical Routing"
 description: "A lightweight BM25S-powered lexical retrieval and tool-routing package for Python applications, REST services, LLM systems, and MCP-based tool workflows."
 ---
 
