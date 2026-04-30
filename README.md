@@ -14,7 +14,7 @@ Use it to search documents, route LLM tool calls, filter MCP-discovered tools, a
 
 **[Quick Start →](#install)**
 
-![BM25S Retriever LLM Architecture](https://github.com/vrraj/bm25s-retriever/blob/main/images/vrraj-bm25s-retriever-llm.png)
+![BM25S Retriever LLM Architecture](https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/images/vrraj-bm25s-retriever-llm.png)
 
 <center><em>Figure: BM25S Retriever architecture for tool routing and context filtering</em></center>
 
@@ -313,7 +313,7 @@ It also acts as an interactive tuning environment. You can load your own YAML do
 
 This helps you visualize the ranking logic and see how tools or documents are prioritized before pushing retrieval settings into production.
 
-![BM25S Retriever Web Interface](https://github.com/vrraj/bm25s-retriever/blob/main/images/vrraj-bm25s-retriever-interactive-ui.png)
+![BM25S Retriever Web Interface](https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/images/vrraj-bm25s-retriever-interactive-ui.png)
 
 Run locally:
 
