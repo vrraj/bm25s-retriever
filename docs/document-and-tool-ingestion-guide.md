@@ -1,8 +1,10 @@
-# BM25S Retriever Documentation
+# BM25S Retriever Ingestion Guide
 
 ## Document Management
 
-This guide shows you how to manage documents in the BM25S Retriever system.
+This guide shows how to ingest, manage, and retrieve documents and tool definitions in the BM25S Retriever system.
+
+All ingestion methods (YAML, Web UI, REST API, Python, MCP) feed into the same in-memory BM25S index.
 
 ### Default Document Location
 
@@ -43,6 +45,20 @@ documents:
       category: "data science"
       difficulty: "intermediate"
 ```
+
+## Tools as Documents
+
+In LLM tool routing workflows, tools are represented as documents in the BM25S index.
+
+Each tool definition (from YAML, MCP, or internal registries) is mapped to a Document object with:
+
+- `id` → tool name
+- `title` → human-readable description
+- `content` → detailed function description
+- `keywords` → action phrases and aliases
+- `metadata` → tool type, domain, or additional attributes
+
+This allows tools and documents to participate in the same lexical retrieval and ranking flow.
 
 ### Adding Documents via Web UI
 
@@ -149,6 +165,118 @@ curl -X DELETE http://localhost:9200/documents/api-doc-1
 ```bash
 curl -X POST http://localhost:9200/documents/reload
 ```
+
+## MCP Tool Injection
+
+Tools discovered via MCP can be transformed into BM25S `Document` objects and injected into the index at runtime.
+
+This allows dynamically discovered tools to participate in the same lexical search and filtering process as static YAML-defined tools.
+
+### Use Case: Add MCP-Discovered Tools to the Index
+
+A typical MCP flow looks like this:
+
+```text
+MCP Tool Discovery → Map Tool Definitions to Documents → POST /index → Query-Time Tool Filtering
+```
+
+The MCP client or orchestration layer is responsible for discovering tools and mapping them into the BM25S document shape.
+
+Example MCP-style tool definitions:
+
+```python
+mcp_tools = [
+    {
+        "name": "get_account_summary",
+        "description": "Retrieve account balances, buying power, positions, and account status.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "account_id": {"type": "string"}
+            }
+        },
+        "server": "brokerage_tools",
+    },
+    {
+        "name": "place_stock_order",
+        "description": "Place or preview a stock order for a buy or sell equity trade.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "symbol": {"type": "string"},
+                "side": {"type": "string"},
+                "quantity": {"type": "integer"},
+                "order_type": {"type": "string"}
+            }
+        },
+        "server": "brokerage_tools",
+    },
+]
+```
+
+Map discovered MCP tools into BM25S documents:
+
+```python
+def mcp_tool_to_document(tool: dict) -> dict:
+    """Map an MCP-discovered tool into the BM25S document schema."""
+    name = tool["name"]
+    description = tool.get("description", "")
+    schema = tool.get("input_schema", {})
+    parameter_names = list(schema.get("properties", {}).keys())
+
+    return {
+        "id": f"mcp_{name}",
+        "title": name.replace("_", " ").title(),
+        "content": description,
+        "keywords": [name, *name.split("_"), *parameter_names],
+        "metadata": {
+            "source": "mcp",
+            "server": tool.get("server"),
+            "tool_name": name,
+            "input_schema": schema,
+        },
+    }
+
+bm25s_documents = [mcp_tool_to_document(tool) for tool in mcp_tools]
+```
+
+Inject those documents into the BM25S index through the REST API:
+
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:9200/index",
+    json={
+        "documents": bm25s_documents,
+        "rebuild": False,
+    },
+)
+
+response.raise_for_status()
+print(response.json())
+```
+
+Then retrieve relevant MCP tools at query time:
+
+```python
+response = requests.post(
+    "http://localhost:9200/retrieve",
+    json={
+        "query": "place a buy order for 100 shares",
+        "temperature": 0.5,
+        "llm_tools_cutoff": 10.0,
+        "ignore_zero": True,
+    },
+)
+
+results = response.json()
+
+for doc in results["documents"]:
+    print(doc["id"], doc["title"], doc["score_percentage"], doc["metadata"]["tool_name"])
+```
+
+The returned `metadata` lets the client or orchestrator map the selected BM25S result back to the underlying MCP tool name, server, and execution schema.
 
 ### Searching Documents via API
 
