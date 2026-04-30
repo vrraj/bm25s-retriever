@@ -273,7 +273,7 @@ response = requests.post(
 results = response.json()
 
 for doc in results["documents"]:
-    print(doc["id"], doc["title"], doc["score_percentage"], doc["metadata"]["tool_name"])
+    print(doc["id"], doc["title"], doc["softmax_score"], doc["metadata"]["tool_name"])
 ```
 
 The returned `metadata` lets the client or orchestrator map the selected BM25S result back to the underlying MCP tool name, server, and execution schema.
