@@ -1,7 +1,7 @@
 # vrraj-bm25s-retriever
 
 [![PyPI - Version](https://img.shields.io/pypi/v/vrraj-bm25s-retriever?color=blue&logo=pypi&logoColor=white)](https://pypi.org/project/vrraj-bm25s-retriever/)
-[![GitHub Release](https://img.shields.io/github/v-release/vrraj/bm25s-retriever?label=github%20release&color=orange&logo=github)](https://github.com/vrraj/bm25s-retriever/releases)
+[![GitHub Release](https://img.shields.io/github/v/release/vrraj/bm25s-retriever?label=github%20release&color=orange&logo=github)](https://github.com/vrraj/bm25s-retriever/releases)
 ![CI Status](https://github.com/vrraj/bm25s-retriever/actions/workflows/ci.yml/badge.svg)
 
 
