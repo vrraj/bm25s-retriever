@@ -292,58 +292,65 @@
 <p>A typical MCP flow looks like this:</p>
 <pre><code class="language-text">MCP Tool Discovery → Map Tool Definitions to Documents → POST /index → Query-Time Tool Filtering
 </code></pre>
-<p>The MCP client or orchestration layer is responsible for discovering tools and mapping them into the BM25S document shape.</p>
-<p>Example MCP-style tool definitions:</p>
+<p>The MCP client or orchestration layer is responsible for discovering tools, tracking which server each tool came from, and mapping the MCP tool definition into the BM25S document shape.</p>
+<blockquote>
+<p><strong>Note:</strong> The examples below separate the MCP tool shape from the internal BM25S mapping shape. Do not copy the normalized mapping object as an MCP <code>tools/list</code> response.</p>
+</blockquote>
+<p>Example MCP <code>tools/list</code>-style tool definitions:</p>
 <pre><code class="language-python">mcp_tools = [
     {
         <span class="hljs-string">&quot;name&quot;</span>: <span class="hljs-string">&quot;get_account_summary&quot;</span>,
         <span class="hljs-string">&quot;description&quot;</span>: <span class="hljs-string">&quot;Retrieve account balances, buying power, positions, and account status.&quot;</span>,
-        <span class="hljs-string">&quot;input_schema&quot;</span>: {
+        <span class="hljs-string">&quot;inputSchema&quot;</span>: {
             <span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>,
             <span class="hljs-string">&quot;properties&quot;</span>: {
                 <span class="hljs-string">&quot;account_id&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>}
-            }
+            },
+            <span class="hljs-string">&quot;required&quot;</span>: [<span class="hljs-string">&quot;account_id&quot;</span>],
         },
-        <span class="hljs-string">&quot;server&quot;</span>: <span class="hljs-string">&quot;brokerage_tools&quot;</span>,
     },
     {
         <span class="hljs-string">&quot;name&quot;</span>: <span class="hljs-string">&quot;place_stock_order&quot;</span>,
         <span class="hljs-string">&quot;description&quot;</span>: <span class="hljs-string">&quot;Place or preview a stock order for a buy or sell equity trade.&quot;</span>,
-        <span class="hljs-string">&quot;input_schema&quot;</span>: {
+        <span class="hljs-string">&quot;inputSchema&quot;</span>: {
             <span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;object&quot;</span>,
             <span class="hljs-string">&quot;properties&quot;</span>: {
                 <span class="hljs-string">&quot;symbol&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>},
                 <span class="hljs-string">&quot;side&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>},
                 <span class="hljs-string">&quot;quantity&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;integer&quot;</span>},
-                <span class="hljs-string">&quot;order_type&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>}
-            }
+                <span class="hljs-string">&quot;order_type&quot;</span>: {<span class="hljs-string">&quot;type&quot;</span>: <span class="hljs-string">&quot;string&quot;</span>},
+            },
+            <span class="hljs-string">&quot;required&quot;</span>: [<span class="hljs-string">&quot;symbol&quot;</span>, <span class="hljs-string">&quot;side&quot;</span>, <span class="hljs-string">&quot;quantity&quot;</span>, <span class="hljs-string">&quot;order_type&quot;</span>],
         },
-        <span class="hljs-string">&quot;server&quot;</span>: <span class="hljs-string">&quot;brokerage_tools&quot;</span>,
     },
 ]
 </code></pre>
+<p>In MCP, the server identity is normally known by the client connection that returned the tool list. If you need that information later for execution, add it during the mapping step as BM25S <code>metadata</code>.</p>
 <p>Map discovered MCP tools into BM25S documents:</p>
-<pre><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">mcp_tool_to_document</span>(<span class="hljs-params">tool: <span class="hljs-built_in">dict</span></span>) -&gt; <span class="hljs-built_in">dict</span>:
+<pre><code class="language-python"><span class="hljs-keyword">def</span> <span class="hljs-title function_">mcp_tool_to_document</span>(<span class="hljs-params">tool: <span class="hljs-built_in">dict</span>, server_name: <span class="hljs-built_in">str</span></span>) -&gt; <span class="hljs-built_in">dict</span>:
     <span class="hljs-string">&quot;&quot;&quot;Map an MCP-discovered tool into the BM25S document schema.&quot;&quot;&quot;</span>
     name = tool[<span class="hljs-string">&quot;name&quot;</span>]
     description = tool.get(<span class="hljs-string">&quot;description&quot;</span>, <span class="hljs-string">&quot;&quot;</span>)
-    schema = tool.get(<span class="hljs-string">&quot;input_schema&quot;</span>, {})
+    schema = tool.get(<span class="hljs-string">&quot;inputSchema&quot;</span>, {})
     parameter_names = <span class="hljs-built_in">list</span>(schema.get(<span class="hljs-string">&quot;properties&quot;</span>, {}).keys())
 
     <span class="hljs-keyword">return</span> {
-        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">f&quot;mcp_<span class="hljs-subst">{name}</span>&quot;</span>,
+        <span class="hljs-string">&quot;id&quot;</span>: <span class="hljs-string">f&quot;mcp_<span class="hljs-subst">{server_name}</span>_<span class="hljs-subst">{name}</span>&quot;</span>,
         <span class="hljs-string">&quot;title&quot;</span>: name.replace(<span class="hljs-string">&quot;_&quot;</span>, <span class="hljs-string">&quot; &quot;</span>).title(),
         <span class="hljs-string">&quot;content&quot;</span>: description,
         <span class="hljs-string">&quot;keywords&quot;</span>: [name, *name.split(<span class="hljs-string">&quot;_&quot;</span>), *parameter_names],
         <span class="hljs-string">&quot;metadata&quot;</span>: {
             <span class="hljs-string">&quot;source&quot;</span>: <span class="hljs-string">&quot;mcp&quot;</span>,
-            <span class="hljs-string">&quot;server&quot;</span>: tool.get(<span class="hljs-string">&quot;server&quot;</span>),
+            <span class="hljs-string">&quot;server&quot;</span>: server_name,
             <span class="hljs-string">&quot;tool_name&quot;</span>: name,
             <span class="hljs-string">&quot;input_schema&quot;</span>: schema,
         },
     }
 
-bm25s_documents = [mcp_tool_to_document(tool) <span class="hljs-keyword">for</span> tool <span class="hljs-keyword">in</span> mcp_tools]
+bm25s_documents = [
+    mcp_tool_to_document(tool, server_name=<span class="hljs-string">&quot;brokerage_tools&quot;</span>)
+    <span class="hljs-keyword">for</span> tool <span class="hljs-keyword">in</span> mcp_tools
+]
 </code></pre>
 <p>Inject those documents into the BM25S index through the REST API:</p>
 <pre><code class="language-python"><span class="hljs-keyword">import</span> requests
@@ -373,9 +380,10 @@ response.raise_for_status()
 results = response.json()
 
 <span class="hljs-keyword">for</span> doc <span class="hljs-keyword">in</span> results[<span class="hljs-string">&quot;documents&quot;</span>]:
-    <span class="hljs-built_in">print</span>(doc[<span class="hljs-string">&quot;id&quot;</span>], doc[<span class="hljs-string">&quot;title&quot;</span>], doc[<span class="hljs-string">&quot;score_percentage&quot;</span>], doc[<span class="hljs-string">&quot;metadata&quot;</span>][<span class="hljs-string">&quot;tool_name&quot;</span>])
+    <span class="hljs-built_in">print</span>(doc[<span class="hljs-string">&quot;id&quot;</span>], doc[<span class="hljs-string">&quot;title&quot;</span>], doc[<span class="hljs-string">&quot;softmax_score&quot;</span>], doc[<span class="hljs-string">&quot;metadata&quot;</span>][<span class="hljs-string">&quot;tool_name&quot;</span>])
 </code></pre>
 <p>The returned <code>metadata</code> lets the client or orchestrator map the selected BM25S result back to the underlying MCP tool name, server, and execution schema.</p>
+<p>The BM25S document shape is application-facing and intentionally includes metadata that MCP itself may not return inside the tool object. This keeps the MCP response spec-compliant while still preserving enough routing context for the client or orchestrator.</p>
 <h3 id="searching-documents-via-api">Searching Documents via API</h3>
 <h4 id="basic-search">Basic Search</h4>
 <pre><code class="language-bash">curl -X POST http://localhost:9200/retrieve \

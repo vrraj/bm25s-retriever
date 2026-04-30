@@ -180,64 +180,71 @@ A typical MCP flow looks like this:
 MCP Tool Discovery → Map Tool Definitions to Documents → POST /index → Query-Time Tool Filtering
 ```
 
-The MCP client or orchestration layer is responsible for discovering tools and mapping them into the BM25S document shape.
+The MCP client or orchestration layer is responsible for discovering tools, tracking which server each tool came from, and mapping the MCP tool definition into the BM25S document shape.
 
-Example MCP-style tool definitions:
+> **Note:** The examples below separate the MCP tool shape from the internal BM25S mapping shape. Do not copy the normalized mapping object as an MCP `tools/list` response.
+
+Example MCP `tools/list`-style tool definitions:
 
 ```python
 mcp_tools = [
     {
         "name": "get_account_summary",
         "description": "Retrieve account balances, buying power, positions, and account status.",
-        "input_schema": {
+        "inputSchema": {
             "type": "object",
             "properties": {
                 "account_id": {"type": "string"}
-            }
+            },
+            "required": ["account_id"],
         },
-        "server": "brokerage_tools",
     },
     {
         "name": "place_stock_order",
         "description": "Place or preview a stock order for a buy or sell equity trade.",
-        "input_schema": {
+        "inputSchema": {
             "type": "object",
             "properties": {
                 "symbol": {"type": "string"},
                 "side": {"type": "string"},
                 "quantity": {"type": "integer"},
-                "order_type": {"type": "string"}
-            }
+                "order_type": {"type": "string"},
+            },
+            "required": ["symbol", "side", "quantity", "order_type"],
         },
-        "server": "brokerage_tools",
     },
 ]
 ```
 
+In MCP, the server identity is normally known by the client connection that returned the tool list. If you need that information later for execution, add it during the mapping step as BM25S `metadata`.
+
 Map discovered MCP tools into BM25S documents:
 
 ```python
-def mcp_tool_to_document(tool: dict) -> dict:
+def mcp_tool_to_document(tool: dict, server_name: str) -> dict:
     """Map an MCP-discovered tool into the BM25S document schema."""
     name = tool["name"]
     description = tool.get("description", "")
-    schema = tool.get("input_schema", {})
+    schema = tool.get("inputSchema", {})
     parameter_names = list(schema.get("properties", {}).keys())
 
     return {
-        "id": f"mcp_{name}",
+        "id": f"mcp_{server_name}_{name}",
         "title": name.replace("_", " ").title(),
         "content": description,
         "keywords": [name, *name.split("_"), *parameter_names],
         "metadata": {
             "source": "mcp",
-            "server": tool.get("server"),
+            "server": server_name,
             "tool_name": name,
             "input_schema": schema,
         },
     }
 
-bm25s_documents = [mcp_tool_to_document(tool) for tool in mcp_tools]
+bm25s_documents = [
+    mcp_tool_to_document(tool, server_name="brokerage_tools")
+    for tool in mcp_tools
+]
 ```
 
 Inject those documents into the BM25S index through the REST API:
@@ -277,6 +284,8 @@ for doc in results["documents"]:
 ```
 
 The returned `metadata` lets the client or orchestrator map the selected BM25S result back to the underlying MCP tool name, server, and execution schema.
+
+The BM25S document shape is application-facing and intentionally includes metadata that MCP itself may not return inside the tool object. This keeps the MCP response spec-compliant while still preserving enough routing context for the client or orchestrator.
 
 ### Searching Documents via API
 
