@@ -30,6 +30,21 @@ Tool-heavy agentic systems can quickly run into context bloat. As tool registrie
 
 `vrraj-bm25s-retriever` acts as a small deterministic relevance layer before prompt assembly. It is designed for applications where many tools are available, but only a small subset is relevant for any given request.
 
+
+**Example from a trading agent built with this routing layer:**
+
+
+<div style="display: flex; gap: 16px;">
+  <div style="flex: 1;">
+    <img src="https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/images/agent-with-tool-routing.png" />
+    <p align="center"><em>With lexical routing (~600 tokens, 1 tool)</em></p>
+  </div>
+  <div style="flex: 1;">
+    <img src="https://raw.githubusercontent.com/vrraj/bm25s-retriever/main/images/agent-without-tool-routing.png" />
+    <p align="center"><em>Without routing (~3.6K tokens, 20+ tools)</em></p>
+  </div>
+</div>
+
 ## Primary use case: LLM and MCP tool routing
 
 Modern agentic systems increasingly discover tools through **Model Context Protocol (MCP)**, internal registries, and service APIs. MCP standardizes tool discovery, but it does not decide which tools should be passed to the LLM for a specific user request.
