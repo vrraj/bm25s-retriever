@@ -11,7 +11,7 @@ description: "A lightweight BM25S-powered lexical retrieval and tool-routing pac
     <img src="https://img.shields.io/pypi/v/vrraj-bm25s-retriever?color=blue&logo=pypi&logoColor=white" alt="PyPI - Version">
   </a>
   <a href="https://github.com/vrraj/bm25s-retriever/releases">
-    <img src="https://img.shields.io/github/v-release/vrraj/bm25s-retriever?label=github%20release&color=orange&logo=github" alt="GitHub Release">
+    <img src="https://img.shields.io/github/v/release/vrraj/bm25s-retriever?label=github%20release&color=orange&logo=github" alt="GitHub Release">
   </a>
   <a href="https://github.com/vrraj/bm25s-retriever/actions">
     <img src="https://github.com/vrraj/bm25s-retriever/actions/workflows/ci.yml/badge.svg" alt="CI Status">
