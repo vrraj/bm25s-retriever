@@ -153,7 +153,7 @@ See setup instructions in the README: [Demo Web UI](https://github.com/vrraj/bm2
 
 ## Summary
 
-**vrraj-bm25s-retriever** is a lightweight BM25S-based retrieval layer designed to solve **Agentic Tool Confusion**. By implementing **Surgical Context Filtering**, it narrows user intent against a bounded set of domain-specific tools before prompt assembly. This ensures high LLM Tool Selection Precision and results in **Reduced Token Usage in Agents**. It acts as the orchestration layer for ** Deterministic Tool Routing**, unifying static YAML registries and dynamic MCP-discovered tools into a single, optimized search surface
+**vrraj-bm25s-retriever** is a lightweight BM25S-based retrieval layer designed to solve **Agentic Tool Confusion**. By implementing **Surgical Context Filtering**, it narrows user intent against a bounded set of domain-specific tools before prompt assembly. This ensures high LLM Tool Selection Precision and results in **Reduced Token Usage in Agents**. It acts as the orchestration layer for **Deterministic Tool Routing**, unifying static YAML registries and dynamic MCP-discovered tools into a single, optimized search surface
 
 
 ## Links
