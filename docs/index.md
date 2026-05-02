@@ -145,15 +145,28 @@ for doc in results["documents"]:
 
 ## Interactive tuning UI
 
-The GitHub repo includes a FastAPI-powered **Demo Web UI** for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters.
+The GitHub repo includes a FastAPI-powered **Demo Web UI** for testing retrieval behavior, inspecting ranked results, adding documents, and tuning retrieval behavior before production use.
 
-Use it as a local experimentation environment: load your own YAML documents or tool definitions, inject additional documents or tools through the API, test queries, adjust temperature and cutoff settings, refine keywords and tool descriptions, and see exactly how results are ranked before using the settings in production.
+The UI is useful for experimenting with parameters such as temperature, softmax cutoff thresholds, keywords, and content/tool descriptions so you can see how ranking changes for real queries.
+
+Use it as a local experimentation environment: load your own YAML documents or tool definitions, inject additional documents or tools through the API, test queries, tune scoring behavior, refine keywords and descriptions, and see exactly how results are ranked before using the settings in production.
 
 See setup instructions in the README: [Demo Web UI](https://github.com/vrraj/bm25s-retriever#demo-web-ui)
 
 ## Summary
 
-**vrraj-bm25s-retriever** is a lightweight BM25S-based retrieval layer designed to solve **Agentic Tool Confusion**. By implementing **Surgical Context Filtering**, it narrows user intent against a bounded set of domain-specific tools before prompt assembly. This ensures high LLM Tool Selection Precision and results in **Reduced Token Usage in Agents**. It acts as the orchestration layer for **Deterministic Tool Routing**, unifying static YAML registries and dynamic MCP-discovered tools into a single, optimized search surface
+**vrraj-bm25s-retriever** is a lightweight BM25S-based retrieval layer for lexical routing in tool-heavy LLM systems.
+
+It is designed for bounded domains where user intent maps to a known set of tools, workflows, or documents. In these environments, tools are usually described using a finite set of verbs, workflow names, and domain-specific terms. This makes lexical routing predictable, tunable, and explainable.
+
+
+For example, if a tool is defined as `purchase_order`, the retriever can be configured with keywords such as `buy`, `order`, or `place order` to cover common user phrasing. Because the domain is bounded, these mappings can be explicitly controlled rather than inferred.
+
+Users can try different keywords, descriptions, temperature values, and cutoff thresholds in the included Demo Web UI to see how ranking changes before settling on production defaults.
+
+For broader or more ambiguous domains, this lexical layer can be combined with vector-based retrieval. The trade-off is additional embedding cost, latency, and the possibility of less precise matches.
+
+For tool-heavy agents where precision, explainability, and token control matter, a lexical-first routing layer is often the simplest place to start.
 
 
 ## Links

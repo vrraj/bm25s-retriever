@@ -283,6 +283,16 @@ Examples:
 - Internal process documentation
 - Compliance or policy snippets
 
+### Bounded domains and lexical precision
+
+`vrraj-bm25s-retriever` is designed for bounded domains where user intent maps to a known set of tools, workflows, or documents.
+
+In these environments, tools are usually described using a finite set of verbs, workflow names, and domain-specific terms. This makes lexical routing predictable, tunable, and explainable.
+
+For example, if a tool is defined as `purchase_order`, the retriever can be configured with keywords such as `buy`, `order`, or `place order` to cover common user phrasing. Because the domain is bounded, these mappings can be explicitly controlled rather than inferred.
+
+Users can try different keywords, descriptions, temperature values, and cutoff thresholds in the included Demo Web UI to see how ranking changes before settling on production defaults.
+
 ### Hybrid RAG
 
 BM25S works well alongside embeddings, especially when you want lexical precision before or alongside semantic search:
@@ -309,7 +319,7 @@ For small-to-medium document sets, BM25S can be enough by itself:
 
 The GitHub repository includes a FastAPI-powered demo UI for testing retrieval behavior, inspecting ranked results, adding documents, and tuning search parameters.
 
-It also acts as an interactive tuning environment. You can load your own YAML documents or tool definitions, test retrieval parameters such as temperature, softmax scoring, and cutoff settings, and iteratively refine keywords and tool descriptions using the included UI.
+It also acts as an interactive tuning environment. You can load your own YAML documents or tool definitions, inject additional documents or tools through the API, test retrieval parameters such as temperature, softmax cutoff thresholds, keywords, and content/tool descriptions, and iteratively refine routing behavior using the included UI.
 
 This helps you visualize the ranking logic and see how tools or documents are prioritized before pushing retrieval settings into production.
 
@@ -596,7 +606,7 @@ Covers:
 
 ```bash
 bm25s-server --config settings.yaml
-./scripts/curl_api_examples.sh
+./examples/curl_api_examples.sh
 ```
 
 Covers:
