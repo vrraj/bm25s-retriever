@@ -177,3 +177,4 @@ For tool-heavy agents where precision, explainability, and token control matter,
 - [API Reference](api-reference.html)
 - [Document and Tool Ingestion Guide](document-and-tool-ingestion-guide.html)
 - [Medium Story](https://medium.com/@vr.rajkumar99/context-engineering-for-tool-heavy-agents-lexical-routing-c1b0ebad7495)
+- [Medium Story- AI computational complexitty and the economics of approximation ](https://medium.com/@vr.rajkumar99/the-p-vs-np-wall-why-ais-energy-crisis-may-actually-be-a-math-problem-46390ca3b853)
