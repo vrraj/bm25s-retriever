@@ -693,6 +693,7 @@ pytest -m "integration or unit"
 - [GitHub Repository](https://github.com/vrraj/bm25s-retriever)
 - [PyPI Package](https://pypi.org/project/vrraj-bm25s-retriever/)
 - [Medium Story](https://medium.com/@vr.rajkumar99/context-engineering-for-tool-heavy-agents-lexical-routing-c1b0ebad7495)
+- [AI computational complexity and the economics of approximation](https://medium.com/@vr.rajkumar99/the-p-vs-np-wall-why-ais-energy-crisis-may-actually-be-a-math-problem-46390ca3b853)
 
 ## License
 
