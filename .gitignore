@@ -138,6 +138,9 @@ dmypy.json
 # Windsurf
 .windsurf/
 
+# Devin
+.devin/
+
 # OS
 .DS_Store
 .DS_Store?
